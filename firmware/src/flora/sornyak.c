@@ -12,7 +12,7 @@
 
 #define SK_TIER 9
 static int abs_i(int v) { return v < 0 ? -v : v; }
-static void sk_swarm(flora_t *f, flc_t *c);       /* (moose.c: the butterflies dancing round the Sornyak) */                                /* px between two caps */
+static void sk_swarm(flora_t *f, flc_t *c, int front);   /* (moose.c: the butterfly loops round the crown) */                                /* px between two caps */
 static const uint8_t SK_SKY[5] = {FL_S0, FL_S1, FL_S2, FL_S3, FL_C(FL_R_SAGE, 0)};
 
 static int sk_popcount(unsigned m)
@@ -299,6 +299,7 @@ static void sk_render(flora_t *f, flc_t *c)
     for (i = 0; i < FL_MAX_PART; i++)            /* far fireflies */
         if (f->part[i].life && (i & 1))
             fl_draw_part(f, c, i);
+    sk_swarm(f, c, 0);                           /* (the loops' far halves, behind it) */
     sk_stem(f, c);
     sk_caps(f, c);
     sk_crown_draw(f, c);
@@ -307,5 +308,5 @@ static void sk_render(flora_t *f, flc_t *c)
     for (i = 0; i < FL_MAX_PART; i++)            /* near ones */
         if (f->part[i].life && !(i & 1))
             fl_draw_part(f, c, i);
-    sk_swarm(f, c);                              /* (the butterflies over everything) */
+    sk_swarm(f, c, 1);                           /* (their near halves, over everything) */
 }

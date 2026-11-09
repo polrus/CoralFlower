@@ -175,24 +175,30 @@ static void tq_rings(flora_t *f, flc_t *c, int front)
     }
 }
 
-/* the Sornyak's butterflies: dancing round it at every height of its stem, each on a circle of its own (its width,
- * its speed, its way round) with a loop up and down; a few to begin with, three more for every recorded track, and
- * many more with the reverb. They beat faster when it is loud; a note flashes some. The far side of a circle darker */
-static void sk_swarm(flora_t *f, flc_t *c)
+/* the Sornyak's butterflies: big glowing loops swirling round its crown, each a circle in the air seen at its own
+ * tilt and turning slowly about the crown: one loop, and one more for every recorded track; the reverb crowds them
+ * with butterflies. Teal and white; the far half of a loop darker (drawn behind the Sornyak, front = 0) */
+static void sk_swarm(flora_t *f, flc_t *c, int front)
 {
-    int n = 3 + 3 * sk_popcount(f->tracks) + f->reverb / 4, i, hs = sk_height(f), g = sk_ground(f);
-    if (n > 80)
-        n = 80;
-    for (i = 0; i < n; i++) {
-        uint32_t h = fl_hash32((uint32_t)i * 2654435761u + 17u);
-        int hgt = 4 + (int)(h % (uint32_t)(hs + 6)), r = 7 + (int)((h >> 8) % 14u), dir = (h >> 20) & 1u ? 1 : -1;
-        int32_t sp = 48 + (int32_t)((h >> 12) % 64u), a = (int32_t)(f->tq_phase / (uint32_t)sp) * dir + (int32_t)(h >> 22);
-        int32_t co = fl_fcos(a), si = fl_fsin(a);
-        int pc = (int)(h % 12u), lit = f->pulse_on[pc] && f->t - f->pulse_t[pc] < 300u;
-        int x = sk_x(f, hgt > hs ? hs : hgt) + (int)((co * (r + (lit ? 2 : 0))) >> 14);
-        int y = g - hgt + (int)((si * 3) >> 14) + (int)((fl_fsin(a * 2 + (int32_t)(h & 1023)) * 2) >> 14);
-        int open = (int)(((f->tq_flap >> 7) + h) & 3u) < 2, k = (int)((h >> 16) % TQ_NRING);
-        tq_fly(c, x, y, open, si >= 0 ? TQ_RING_COL[k][0] : TQ_RING_COL[k][1], si >= 0 ? TQ_RING_COL[k][1] : FL_S3, lit);
+    static const uint8_t COL[2][3] = {{FL_C(FL_R_SEA, 0), FL_C(FL_R_JADE, 1), FL_C(FL_R_SEA, 2)},
+                                      {FL_C(FL_R_SAGE, 0), FL_C(FL_R_SAND, 1), FL_C(FL_R_SAGE, 2)}};
+    int n = 1 + sk_popcount(f->tracks), k, i, cx, cy;
+    sk_crown(f, &cx, &cy);
+    for (k = 0; k < n && k < 5; k++) {
+        int R = 15 + k * 7, cnt = 16 + k * 4 + f->reverb / 8, w = k & 1;
+        int32_t rot = (int32_t)(k * 205) + (int32_t)(f->t / (90u + (uint32_t)k * 30u)) * (k & 1 ? -1 : 1);   /* its tilt turns */
+        int32_t ur = fl_fcos(rot), vr = fl_fsin(rot), m = 5000 + k * 1600;      /* the minor axis: Q14 of R */
+        int32_t ph = (int32_t)(f->tq_phase / (uint32_t)(40 + k * 12)) * (k & 1 ? 1 : -1);
+        for (i = 0; i < cnt; i++) {
+            int32_t a = ph + i * 1024 / cnt, co = fl_fcos(a), si = fl_fsin(a);
+            int pc = (k * 7 + i) % 12, lit = f->pulse_on[pc] && f->t - f->pulse_t[pc] < 300u, r = R + (lit ? 2 : 0);
+            int32_t px = (co * r) >> 14, py = ((si * r) >> 14) * m >> 14;        /* on the flat circle, then turned */
+            int x = cx + (int)((px * ur - py * vr) >> 14), y = cy - 2 + (int)((px * vr + py * ur) >> 14);
+            int open = (int)(((f->tq_flap >> 7) + (uint32_t)(i * 3 + k)) & 3u) < 2;
+            if ((si >= 0) != front)
+                continue;
+            tq_fly(c, x, y, open, front ? COL[w][0] : COL[w][2], front ? COL[w][1] : FL_S3, lit);
+        }
     }
 }
 
