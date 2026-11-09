@@ -734,6 +734,12 @@ static void ui_presets(int d)                    /* PRESETS: the chord sound (a 
         sq_presets(d);                           /* (the pattern's own sound for the frame's track: 0.5) */
         return;
     }
+    if (sq_home_live()) {                        /* (HOME over a pattern playing: the live sound, the LAYER's) */
+        cf_snd_step(CF_PART_LAYER, d);
+        ui_snd_heard(CF_PART_LAYER);
+        cf_pop(POP_SOUND_LAYER, 1200);
+        return;
+    }
     cf_snd_step(CF_PART_CHORD, d);
     if (cs.env_link)                             /* linked: the bass takes the new sound's envelope */
         cf_env_follow();
@@ -1088,7 +1094,7 @@ static void cf_save_delete(void)
         return;
     }
     sq_home_put(home);                           /* (the row moved: HOME's sounds follow, as what they are) */
-    cfk_drop(cur < SQ_NPAT && cfps.r[cur][part].own ? cur + 1u : 0u, part);
+    cfk_drop(sq_snd_own(cur, part) ? cur + 1u : 0u, part);
     ui_snd_slot_changed(slot, 0);                /* (only a user sound deletes: its slot) */
     cu.edited[part] = 0;
     cu.save_del = 0;
@@ -1110,7 +1116,7 @@ static void cf_save_do(void)
     {
         cf_sref_t home[3];
         uint32_t cur = sq_cur_pat();
-        int own = cur < SQ_NPAT && cfps.r[cur][part].own;
+        int own = sq_snd_own(cur, part);
         sq_home_keep(home);
         res = cf_snd_save(part, cu.save_new, name + i);
         if (res) {
@@ -1216,7 +1222,7 @@ static void ui_note_key_aged(int key, int down, int age_ms);
 static void ui_snd_heard(uint32_t part)
 {
     uint32_t cur = sq_cur_pat();
-    if (cur < SQ_NPAT && cfps.r[cur][part].own) {
+    if (sq_snd_own(cur, part)) {
         cfps_set(cur, part, &cf_snd[part]);
         cfk_drop(cur + 1u, part);                /* (another sound: its tweak goes) */
         cfk_take(part, cur + 1u);
@@ -1224,6 +1230,8 @@ static void ui_snd_heard(uint32_t part)
     }
     if (part == CF_PART_CHORD)
         cs.snd[0] = (uint16_t)cf_snd_pos(CF_PART_CHORD);
+    else if (part == CF_PART_LAYER)
+        cs.snd_layer = (uint16_t)cf_snd_pos(CF_PART_LAYER);
     else if (part == CF_PART_BASS)
         cs.snd[1] = (uint16_t)cf_snd_pos(CF_PART_BASS);
     cfk_drop(0, part);

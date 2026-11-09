@@ -298,9 +298,22 @@ static uint32_t cf_save_part(void);
  * (sq_key) */
 static int sq_frame_trk(uint32_t t) { return (cu.scr == SCR_SQED || (cu.scr == SCR_SQ && squ.pat < SQ_NPAT)) && squ.trk == t; }
 static uint8_t sq_live_bass(void) { return (uint8_t)(sq_frame_trk(SQ_BASS) || cf_sn.sq_rec == SQ_BASS); }
+/* HOME over a pattern playing: the keys play a live sound over it, HOME's LAYER sound on the LAYER part (its bass
+ * silent), and PRESETS turns that sound, so the pattern's chords keep theirs; REC there records the keys into the
+ * pattern's LAYER track (sq_home_rec). Stopped, or in a take from HOME into a new pattern's CHORDS, HOME is as it was.
+ * The pattern's own LAYER notes play with the live sound meanwhile (one part) */
+static int sq_home_live(void)
+{
+    return cu.scr == SCR_HOME && cf_sn.sq_on && !sqk.on && (cf_sn.sq_rec == 0xFFu || cf_sn.sq_rec == SQ_LAYER);
+}
+/* the pattern's own sound for part is what the part plays (0.5), not HOME's; the LAYER's not while HOME is live */
+static int sq_snd_own(uint32_t pat, uint32_t part)
+{
+    return pat < SQ_NPAT && part < 3u && cfps.r[pat][part].own && !(part == CF_PART_LAYER && sq_home_live());
+}
 static uint8_t sq_live_part(void)                /* (and while the LAYER's sound is edited: EDIT, ENV, SAVE) */
 {
-    return (uint8_t)(sq_frame_trk(SQ_LAYER) || cf_sn.sq_rec == SQ_LAYER ||
+    return (uint8_t)(sq_home_live() || sq_frame_trk(SQ_LAYER) || cf_sn.sq_rec == SQ_LAYER ||
                      (cu.scr == SCR_EDIT && cu.edit_part == CF_PART_LAYER) ||
                      (cu.scr == SCR_ENV && env_part() == CF_PART_LAYER) ||
                      (cu.scr == SCR_SAVE && cu.page[SCR_SAVE] == CF_PART_LAYER) ? CF_PART_LAYER : CF_PART_CHORD);
@@ -1248,6 +1261,7 @@ static void sq_hint_once(uint32_t bit)
     sqh_scr = cu.scr;
 }
 static void sq_home_rec_r(uint32_t r, int counted);
+static void sq_home_layer_rec(void);
 static void sq_home_rec(void)                    /* REC tapped */
 {
     if (sqk.on) {
@@ -1262,9 +1276,27 @@ static void sq_home_rec(void)                    /* REC tapped */
         cf_post(CFE_DRUM, 5, 0, 0);
         return;
     }
+    if (sq_home_live()) {                        /* (over a pattern playing: the live sound into its LAYER) */
+        sq_home_layer_rec();
+        return;
+    }
     if (dm_home_rec())                           /* (under a rhythm: cf_dmui.c) */
         return;
     sq_home_rec_r(DM_N, 0);
+}
+/* REC on HOME over a pattern playing (sq_home_live): a take of the keys into its LAYER track, from where it plays, as
+ * REC in that track would; HOME stays open. The track keeps the sound it was played with: the live one becomes the
+ * pattern's own LAYER sound */
+static void sq_home_layer_rec(void)
+{
+    uint32_t pat = cf_sn.sq_pat % SQ_NPAT;
+    squ.pat = (uint8_t)pat;
+    squ.trk = SQ_LAYER;
+    sqk.last = (uint8_t)pat;
+    cfps_set(pat, CF_PART_LAYER, &cf_snd[CF_PART_LAYER]);
+    cfk_drop(pat + 1u, CF_PART_LAYER);           /* (another sound: the pattern's LAYER tweak goes) */
+    sq_rec_tap();
+    cf_message("REC: the Layer");
 }
 /* a take into a new pattern; r < DM_N: under rhythm r of the drum machine, its DRUMS that rhythm (the one playing:
  * from the bar it plays, it takes over at once; else after a bar counted in). counted: always after the count-in, the
@@ -1502,7 +1534,7 @@ static uint32_t sq_cur_pat(void)                 /* 0xFF: none (HOME's sounds) *
 }
 static void sq_snd_want(uint32_t pat, uint32_t part, uint32_t *e, uint32_t *pos)   /* part's sound under pat */
 {
-    if (pat < SQ_NPAT && cfps_where(pat, part, e, pos))
+    if (pat < SQ_NPAT && !(part == CF_PART_LAYER && sq_home_live()) && cfps_where(pat, part, e, pos))
         return;
     cf_snd_at(part, part == CF_PART_LAYER ? cs.snd_layer : cs.snd[part], e, pos);
 }
@@ -1532,7 +1564,7 @@ static void sq_snd_poll(void)
     uint32_t cur = sq_cur_pat(), nx = sqp.on ? sq_next_pat() : 0xFFu, part, e, pos, ne, np, follow = 0;
     for (part = 0; part < 3u; part++) {
         cf_stage_t *s = &cf_stage[part];
-        uint32_t o = cur < SQ_NPAT && cfps.r[cur][part].own ? cur + 1u : 0u;
+        uint32_t o = sq_snd_own(cur, part) ? cur + 1u : 0u;
         int diff;
         if (s->taken) {                          /* (the audio side put one in at the bar line) */
             s->taken = 0;
@@ -1562,7 +1594,7 @@ static void sq_snd_poll(void)
             follow |= part < 2u;
         }
         if (nx < SQ_NPAT && nx != cur) {
-            uint32_t o1 = cfps.r[nx][part].own ? nx + 1u : 0u;
+            uint32_t o1 = sq_snd_own(nx, part) ? nx + 1u : 0u;
             sq_snd_want(nx, part, &ne, &np);
             if (ne == cf_snd[part].engine && np == cf_snd[part].pos && !cfk_edited(part) && !sq_snd_tweaked(o1, part)) {
                 s->ready = 0;                    /* (the same sound, no tweak on either: nothing to change; its owner
@@ -1668,6 +1700,8 @@ static void sq_resume(void)
 static void sq_home_poll(void)                   /* every frame */
 {
     uint32_t i;
+    if (sq_live_part() != cfp_cfg.cpart || sq_live_bass() != cfp_cfg.bass_only)
+        cf_send_config();                        /* (HOME live or not: the keys move to the part they play) */
     if (sqk.last < SQ_NPAT && !sq_has(sqk.last))  /* (cleared or undone since: another) */
         sqk.last = 0xFF;
     for (i = 0; sqk.last == 0xFFu && i < SQ_NPAT; i++)   /* (after a power-on, before any is opened: the first one

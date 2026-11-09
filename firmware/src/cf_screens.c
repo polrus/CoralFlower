@@ -60,7 +60,7 @@ static void draw_top_sound(uint32_t part, int xmax)   /* xmax: where the chips o
     char num[4], l[2], nm[13];
     int x = 4, own, room;
     uint32_t cur = sq_cur_pat(), k;
-    own = cur < SQ_NPAT && part < 3u && cfps.r[cur][part].own;
+    own = sq_snd_own(cur, part);
     l[0] = (char)('A' + cur % SQ_NPAT);
     l[1] = 0;
     snd_num(cf_snd_pos(part), num);
@@ -547,7 +547,7 @@ static void cf_ui_draw(void)
                 if (kind != DMP_NONE)
                     x = dm_plaque_chip(x, b, kind) - 4;
             }
-            draw_top_sound(CF_PART_CHORD, x);    /* (after the chips: the name fits before them) */
+            draw_top_sound(sq_home_live() ? CF_PART_LAYER : CF_PART_CHORD, x);   /* (live: the keys' sound) */    /* (after the chips: the name fits before them) */
         }
         (void)top;
     } else {
