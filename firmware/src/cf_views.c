@@ -177,12 +177,12 @@ static void draw_piano(int x, int y, int lo, int octs, int wk, int h, uint8_t (*
  * framed. Each knob's choices in a row, the one taken marked */
 static void cv_backdrop_thumb(int x, int y, int w, int h, uint32_t bd, int on)
 {
-    int coral = flo.species == FL_SP_CORAL, i;
+    int coral = flo.species == FL_SP_SORNYAK, i;   /* (night behind the Sornyak) */
     uint8_t base = coral ? FL_S0 : FL_L0;
     fb_rect(x, y, w, h, FL_BG);
     if (bd != FL_BD_NONE)
         for (i = 0; i < 4; i++)                  /* the sky / the water, darker up */
-            fb_rect(x, y + h * i / 4, w, h / 4 + 1, (uint8_t)(base + (coral ? 3 - i : i)));
+            fb_rect(x, y + h * i / 4, w, h / 4 + 1, (uint8_t)(base + i));   /* (darker up: dusk, night) */
     if (bd == FL_BD_SCENE) {
         if (!coral) {
             fb_rect(x + w - 11, y + 4, 4, 4, FL_INK2);         /* the moon */
@@ -191,11 +191,13 @@ static void cv_backdrop_thumb(int x, int y, int w, int h, uint32_t bd, int on)
             fb_pset(x + 15, y + 3, FL_INK3);
             for (i = 0; i < w; i++)                            /* far hills */
                 fb_rect(x + i, y + h - 5 - ((i * 7 / w) & 1) - (i % 9 < 4), 1, 6, FL_BG1);
-        } else {
-            for (i = 0; i < 3; i++) {                          /* soft lights drifting */
-                int bx = x + 6 + (int)((i * 13 + cu.now / 90u) % (uint32_t)(w - 10)), by = y + 5 + i * 5;
-                fb_rect(bx, by, 3, 3, (uint8_t)(base + 3));
-            }
+        } else {                                               /* the Sornyak: a stem, two caps, its crown */
+            int sx = x + w * 5 / 8;
+            fb_rect(sx, y + 6, 1, h - 6, FL_INK2);
+            fb_rect(sx - 3, y + h - 5, 7, 1, FL_INK2);
+            fb_rect(sx - 2, y + h - 10, 5, 1, FL_INK2);
+            fb_rect(sx - 1, y + 3, 3, 3, (cu.now / 600u) & 1u ? FL_INK : FL_INK2);
+            fb_rect(x + 3, y + h - 4, 3, 3, FL_C(FL_R_FIRE, 0));   /* (the moose) */
         }
     } else if (bd == FL_BD_RIPPLES) {                          /* a ring going out */
         int r = 3 + (int)(cu.now / 70u % 14u), cx = x + w / 2, cy = y + h - 3, a;

@@ -12,6 +12,8 @@ enum { P_MOTE = 0, P_BUBBLE, P_PETAL, P_BIG_BUBBLE };        /* particles */
 #define SCALE 400     /* body size, Q8 (256 = sizes as written) */
 #define KEY_CORAL 0x8000u
 #define IS_CORAL(s) (((s)->key & KEY_CORAL) != 0)
+static void sk_tick(flora_t *f, uint32_t dt);    /* (sornyak.c, included below) */
+static void tq_tick(flora_t *f, uint32_t dt);    /* (moose.c, included below) */
 
 /* ---- integer helpers ---------------------------------------------------------------------------------------- */
 
@@ -513,10 +515,7 @@ static void fl_build(flora_t *f)
     f->key_ramp = f->bloom ? (uint8_t)(f->bloom - 1u) : PLANT_RAMPS[fifth % 6];
     f->eye_ramp = f->key_ramp == FL_R_FIRE ? FL_R_COPPER : FL_R_FIRE;
     f->body_ramp = CORAL_RAMPS[home % 6];
-    if (f->species == FL_SP_CORAL)
-        fl_build_coral(&b);
-    else
-        fl_build_plant(&b);
+    /* (both species are drawn whole now, sornyak.c and moose.c: the plant's body withers, nothing grows) */
 
     /* what the change lets go of: petals fall, polyps release a puff of spawn */
     for (i = 0; i < f->nseg; i++) {
@@ -559,7 +558,7 @@ void flora_init(flora_t *f, uint32_t seed, int cx, int cy)
 
 void flora_set_species(flora_t *f, int species)
 {
-    species = species ? FL_SP_CORAL : FL_SP_PLANT;
+    species = species ? FL_SP_SORNYAK : FL_SP_PLANT;
     if (species == f->species)
         return;
     f->species = (uint8_t)species;
@@ -573,7 +572,7 @@ void flora_set_key(flora_t *f, int tonic_pc)
     if (tonic_pc == f->home)
         return;
     f->home = (uint8_t)tonic_pc;
-    if (f->species == FL_SP_CORAL && f->shape.n)
+    if (f->species == FL_SP_SORNYAK && f->shape.n)
         fl_build(f);
 }
 
@@ -606,7 +605,11 @@ void flora_note_on(flora_t *f, uint8_t note, uint8_t vel)
     }
     if (f->level_in < (int32_t)vel << 9)
         f->level_in = (int32_t)vel << 9;
+    if (vel > 90 && f->ring_t[f->ring_i] == f->t)   /* (a strong chord: the Sornyak's sky flashes) */
+        f->sk_flash = (int32_t)vel * 2;
 }
+void flora_set_tracks(flora_t *f, unsigned mask) { f->tracks = (uint8_t)(mask & 15u); }
+void flora_set_reverb(flora_t *f, unsigned amount) { f->reverb = (uint8_t)(amount > 255u ? 255u : amount); }
 
 void flora_set_level(flora_t *f, uint16_t level) { f->level_in = level; }
 
@@ -776,6 +779,9 @@ void flora_tick(flora_t *f, uint32_t dt)
         if (p->y < -(4 << 8))
             p->life = 0;
     }
+    if (f->species == FL_SP_SORNYAK)
+        sk_tick(f, dt);
+    tq_tick(f, dt);                              /* (the butterflies' clocks: both scenes have them) */
     if ((f->t & 1023) < dt)
         fl_compact(f), fl_sort_by_depth(f);
 }
@@ -1100,7 +1106,7 @@ static void fl_bd_rings(flora_t *f, flc_t *c, int sea)
 
 static void fl_backdrop(flora_t *f, flc_t *c)
 {
-    int sea = f->species == FL_SP_CORAL;
+    int sea = f->species == FL_SP_SORNYAK;
     switch (f->backdrop) {
     case FL_BD_SCENE:
         if (sea)
@@ -1121,6 +1127,9 @@ static void fl_backdrop(flora_t *f, flc_t *c)
     }
 }
 
+#include "sornyak.c"
+#include "moose.c"
+
 void flora_render(flora_t *f, flc_t *c)
 {
     cam_t k;
@@ -1130,6 +1139,12 @@ void flora_render(flora_t *f, flc_t *c)
     static uint8_t next[FL_MAX_SEG];
     int32_t yaw = f->yaw >> 8;
 
+    if (f->species == FL_SP_SORNYAK) {
+        sk_render(f, c);
+        return;
+    }
+    tq_render(f, c);                             /* (the torch; the plant below no longer draws) */
+    return;
     k.cy = fl_fcos(yaw);
     k.sy = fl_fsin(yaw);
     k.cp = fl_fcos(PITCH);

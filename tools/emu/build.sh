@@ -24,17 +24,17 @@ CC=${CC:-clang}
 OUT=build/host
 OBJ=build/host/emu_obj
 mkdir -p "$OUT" "$OBJ" build/emu
-# the version the firmware shows, the same rule as tools/emu/web/build_web.sh: CR_VERSION=X.Y ("CoralFlower X.Y"), else
+# the version the firmware shows, the same rule as tools/emu/web/build_web.sh: CR_VERSION=X.Y ("Sornyak X.Y"), else
 # the newest release in web/releases.json, else firmware/src/coralflower.c's FELUCCA_VERSION
 if [ -n "${CR_VERSION:-}" ]; then
     case "$CR_VERSION" in
         CoralFlower*) VER=$CR_VERSION ;;
-        *) VER="CoralFlower $(printf %s "$CR_VERSION" | tr A-Z a-z)" ;;
+        *) VER="Sornyak $(printf %s "$CR_VERSION" | tr A-Z a-z)" ;;
     esac
 else
     REL=$(sed -n 's/^ *"version": *"\([^"]*\)".*/\1/p' web/releases.json 2>/dev/null | head -1)
     if [ -n "$REL" ]; then
-        VER="CoralFlower $REL"
+        VER="Sornyak $REL"
     else
         VER=$(sed -n 's/^#define FELUCCA_VERSION "\(.*\)".*/\1/p' firmware/src/coralflower.c | head -1)
     fi

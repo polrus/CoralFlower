@@ -1,4 +1,9 @@
-# CoralFlower licensing
+# Sornyak licensing
+
+Sornyak is a fork of CoralFlower (<https://github.com/FicusFicusov/CoralFlower>), under the same licence,
+GPL-3.0-only. Everything below is CoralFlower's licensing as it stands, and applies to Sornyak unchanged. Sornyak's
+own additions (the Sornyak view, `firmware/src/flora/sornyak.c`, and the live Layer on HOME) are GPL-3.0-only too.
+
 
 CoralFlower is free software under the GNU General Public License, version 3 only (`GPL-3.0-only`; the full text is
 in `LICENSE`). That covers the firmware, the tools, the web pages and the tests in this tree. A few bundled or ported

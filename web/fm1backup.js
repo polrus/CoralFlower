@@ -12,7 +12,7 @@
 //   CoralFlower 6 7 user sound banks, 8 the FM6 bank, 9 the VA patches, 10 11 the FM6 patches (ChoralRoot's ids and
 //               formats: the sounds go both ways), 30 its settings, 31 its loop, 50..55 its sequencer's patterns and
 //               song (0.3.1: the six parts of one store; ids of its own: a ChoralRoot record never lands in them;
-//               ChoralRoot's 1 and 40..49 are reported skipped there, and CoralFlower's 30 31 50..55 on ChoralRoot)
+//               ChoralRoot's 1 and 40..49 are reported skipped there, and Sornyak's 30 31 50..55 on ChoralRoot)
 // so a Felucca archive restores its settings, banks and FM6 bank on ChoralRoot (its samples are reported skipped), and
 // a ChoralRoot archive those (its settings record cut back to Felucca's) on Felucca; the rest stays in the file.
 export const BACKUP_IDS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 32, 33, 34];   // Felucca's archive (8: the FM6 patch bank)
@@ -46,11 +46,11 @@ export function objectName(id) {
   if (id === 22) return "FM TONE patches";
   if (isSample(id)) return `sample slot ${id - 31}`;
   if (id >= 40 && id <= 49) return `loop slot ${id - 39}`;
-  if (id === 30) return "CoralFlower settings";
-  if (id === 31) return "CoralFlower loop";
-  if (CF_SEQ_IDS.includes(id)) return "CoralFlower patterns and song";
-  if (CF_EDIT_IDS.includes(id)) return "CoralFlower unsaved sound edits";
-  if (id === CF_PSND_ID || CF_TWK_IDS.includes(id)) return "CoralFlower pattern sounds";
+  if (id === 30) return "Sornyak settings";
+  if (id === 31) return "Sornyak loop";
+  if (CF_SEQ_IDS.includes(id)) return "Sornyak patterns and song";
+  if (CF_EDIT_IDS.includes(id)) return "Sornyak unsaved sound edits";
+  if (id === CF_PSND_ID || CF_TWK_IDS.includes(id)) return "Sornyak pattern sounds";
   return `object ${id}`;
 }
 // the names of a list of ids, each once (the sequencer's six parts read as one)
@@ -113,7 +113,7 @@ export function bkManifest(a) {
 const bkBase64 = (bytes) => { let s = ""; for (const b of bytes) s += String.fromCharCode(b); return btoa(s); };
 // CoralFlower answers ChoralRoot's protocol on ChoralRoot's objects (its cr_backup.c), RESTART included: its own family
 // for the file name (coralflower-backup-YYYYMMDD.json), the same handling as ChoralRoot everywhere else
-export const backupFamily = (firmware) => (/^coralflower/i.test(firmware || "") ? "coralflower" : /^choralroot/i.test(firmware || "") ? "choralroot" :
+export const backupFamily = (firmware) => (/^(sornyak|coralflower)/i.test(firmware || "") ? "coralflower" : /^choralroot/i.test(firmware || "") ? "choralroot" :
   /^felucca/i.test(firmware || "") ? "felucca" : "other");
 export function readBackup(file) {
   if (typeof file === "string") file = JSON.parse(file);
@@ -225,7 +225,7 @@ export async function restoreBackup(request, file, onProgress = () => {}, opts =
         await retry(() => put([2, o.id]));
       } catch (e) {
         await put([3, o.id]).catch(() => {});
-        // another firmware's settings: best effort; CoralFlower's 31 too: since 0.6 it holds the rhythm machine's
+        // another firmware's settings: best effort; Sornyak's 31 too: since 0.6 it holds the rhythm machine's
         // record, which 0.5 refuses (rc 2), and the patterns after it must still go back (the owner's pick, 0.6)
         if ((o.converted || o.id === 31) && e.rc === 2) { skipped.push(o.id); continue; }
         throw e;

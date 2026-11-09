@@ -7,7 +7,7 @@
 
 static void cf_splash_frame(uint32_t t)
 {
-    static const char *const NAME = "CoralFlower";
+    static const char *const NAME = "Sornyak";
     int i, n = (int)str_len(NAME), shown, x;
     flora_render(&flo, &fl_cv);
     fb_fill(FL_BG);
@@ -48,7 +48,7 @@ static void cf_splash(void)
     flo.bloom = FL_R_ROSE + 1u;                  /* the intro's flower is pink, whatever the key */
     flora_set_key(&flo, cs.chord.tonic);
     flo.backdrop = cs.backdrop;
-    flora_set_species(&flo, cs.chord.algo >= CF_ALG_SIDE ? FL_SP_CORAL : FL_SP_PLANT);
+    flora_set_species(&flo, cs.chord.algo >= CF_ALG_SIDE ? FL_SP_SORNYAK : FL_SP_PLANT);
     cf_splash_frame(0);                          /* (nothing has grown yet: the scene alone) */
     cf_present();
 }

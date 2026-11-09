@@ -6,7 +6,7 @@
 # The page takes its look from the site around it (../site.css): tools/make_site.sh OUT puts it in OUT/play/.
 # Needs emcc (the Emscripten SDK: ~/emsdk/emsdk_env.sh is sourced when emcc is not on the PATH) and the firmware's
 # generated headers (build/gen: the generate step of tools/build.py runs when they are missing, as build.sh does).
-# CR_VERSION: the version the firmware shows ("1.0" -> "CoralFlower 1.0", as tools/build.py --release); default
+# CR_VERSION: the version the firmware shows ("1.0" -> "Sornyak 1.0", as tools/build.py --release); default
 # the newest release in web/releases.json (the installer's list, written at every release: the site's emulator said
 # 0.1 after 0.2 was out, from coralflower.c's FELUCCA_VERSION, the last fallback).
 set -e
@@ -29,12 +29,12 @@ done
 if [ -n "${CR_VERSION:-}" ]; then
     case "$CR_VERSION" in
         CoralFlower*) VER=$CR_VERSION ;;
-        *) VER="CoralFlower $(printf %s "$CR_VERSION" | tr A-Z a-z)" ;;
+        *) VER="Sornyak $(printf %s "$CR_VERSION" | tr A-Z a-z)" ;;
     esac
 else
     REL=$(sed -n 's/^ *"version": *"\([^"]*\)".*/\1/p' web/releases.json 2>/dev/null | head -1)
     if [ -n "$REL" ]; then
-        VER="CoralFlower $REL"
+        VER="Sornyak $REL"
     else
         VER=$(sed -n 's/^#define FELUCCA_VERSION "\(.*\)"/\1/p' firmware/src/coralflower.c | head -1)
     fi

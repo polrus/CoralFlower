@@ -80,7 +80,7 @@
                                   * engine 9 retired (its records load as the VA's init sound, as the five's above) */
 #endif
 #if defined(FELUCCA_CZ) && FELUCCA_CZ
-#error "FELUCCA_CZ: CoralFlower has no CZ-1 engine (its code and ChoralRoot's unit choralroot.c left the tree in 0.5.1: the CZ-1 factory tones are Casio's, with no licence)"
+#error "FELUCCA_CZ: Sornyak has no CZ-1 engine (its code and ChoralRoot's unit choralroot.c left the tree in 0.5.1: the CZ-1 factory tones are Casio's, with no licence)"
 #endif
 #ifndef FELUCCA_CZ
 #define FELUCCA_CZ 0             /* Melodee's CZ-1 engine (engine 13 + FELUCCA_SLICE + FELUCCA_VA, 14 on ChoralRoot): its code

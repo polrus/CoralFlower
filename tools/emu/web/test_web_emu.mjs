@@ -292,7 +292,7 @@ if (!args.has("--no-native")) {
       ok(Math.abs(rms(nat) - rms(run.pcm)) < 0.25 * rms(nat), `loosely: rms native ${rms(nat).toFixed(4)}, web ${rms(run.pcm).toFixed(4)}`);
     }
     // the dumps: the native one adds its MIDI count, and the boot line comes before the first; the screen tiles sent
-    // are left out (cf_headless.sh builds "CoralFlower dev", and the splash draws the version: a tile or two more)
+    // are left out (cf_headless.sh builds "Sornyak dev", and the splash draws the version: a tile or two more)
     const tiles = (d) => d.replace(/tiles sent \d+/, "tiles sent -");
     const nd = text.split(/^(?=fm1_in: )/m).slice(1).map((d) => tiles(d.replace(/^  midi out: .*\n/m, "")));
     const same = nd.length === dumps.length && nd.every((d, i) => d === tiles(dumps[i]));

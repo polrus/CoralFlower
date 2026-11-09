@@ -9,18 +9,18 @@
      (fm1pkg.js) and backup (fm1backup.js), loaded from this folder as modules. Its button is in the first screen, where
      its progress shows; every other "Install on your FM-1" button presses that one. The firmware to install: the newest
      version firmware/releases.json lists (fetched from this site and checked against its SHA-256), another version, or
-     a .fwsc file the user picks (checked here before Install is enabled: CoralFlower's identity FM-1_930, Felucca's
+     a .fwsc file the user picks (checked here before Install is enabled: Sornyak's identity FM-1_930, Felucca's
      update loader, every checksum of the package). The Support dialog and its script are the same on every page.
      web/test_installer.mjs runs this page against a simulated FM-1; tools/make_site.sh puts the site together. -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CoralFlower: chord firmware for the M-VAVE FM-1</title>
-<meta name="description" content="CoralFlower makes the M-VAVE FM-1 an instrument for chords, and a pixel flower grows while you play. It’s free and open source, and it installs from your browser in about a minute.">
+<title>Sornyak: chord firmware for the M-VAVE FM-1</title>
+<meta name="description" content="Sornyak makes the M-VAVE FM-1 an instrument for chords, and a small moose listens while you play. It’s free and open source, and it installs from your browser in about a minute.">
 <meta name="theme-color" content="#110A02">
-<meta property="og:title" content="CoralFlower: chord firmware for the M-VAVE FM-1">
-<meta property="og:description" content="Your M-VAVE FM-1, made for chords. A pixel flower grows while you play. Free and open source.">
+<meta property="og:title" content="Sornyak: chord firmware for the M-VAVE FM-1">
+<meta property="og:description" content="Your M-VAVE FM-1, made for chords. A small moose listens while you play. Free and open source.">
 <meta property="og:image" content="images/home.png">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
@@ -33,7 +33,7 @@
 <a class="skip" href="#main">Skip to content</a>
 <header class="site-header">
   <div class="container site-header__row">
-    <a class="brand" href="./" aria-label="CoralFlower, home"><img src="favicon.svg" width="28" height="28" alt=""><span><span class="brand-a">Coral</span><span class="brand-b">Flower</span></span></a>
+    <a class="brand" href="./" aria-label="Sornyak, home"><img src="favicon.svg" width="28" height="28" alt=""><span><span class="brand-a">Sorn</span><span class="brand-b">yak</span></span></a>
     <nav class="site-nav" aria-label="Sections">
       <a href="#features">Features</a>
       <a href="#garden">Garden</a>
@@ -52,12 +52,12 @@
   <section class="hero" id="install" aria-labelledby="hero-title">
     <div class="container hero__grid">
       <div class="hero__pitch">
-        <h1 class="display-1" id="hero-title" tabindex="-1"><span class="brand-a">Coral</span><span class="brand-b">Flower</span></h1>
+        <h1 class="display-1" id="hero-title" tabindex="-1"><span class="brand-a">Sorn</span><span class="brand-b">yak</span></h1>
         <p class="hero__lead">Your M-VAVE&nbsp;FM-1, made for chords.</p>
         <div class="installer">
           <button class="btn btn--primary btn--lg" id="go" type="button" disabled>Install on your FM-1</button>
           <p class="installer__ver" id="ver"></p>
-          <p class="note" id="nomidi" hidden>Installing needs <b>Chrome or Edge on a computer</b>. On this device, you can still <a href="play/">try CoralFlower with sound</a>.</p>
+          <p class="note" id="nomidi" hidden>Installing needs <b>Chrome or Edge on a computer</b>. On this device, you can still <a href="play/">try Sornyak with sound</a>.</p>
           <noscript><p class="note note--warn">The installer needs JavaScript to talk to the FM-1.</p></noscript>
           <progress id="bar" max="100" value="0" aria-label="Install progress"></progress>
           <p class="installer__status" id="status" role="status"></p>
@@ -65,14 +65,14 @@
           <label class="check" id="force-box" hidden><input id="force-risk" type="checkbox"><span><b>I understand the risk.</b> Install over this firmware anyway.</span></label>
           <div class="panel panel--ok" id="done" role="status" hidden>
             <p class="title" id="done-line"></p>
-            <p>The FM-1 restarted with CoralFlower. You can unplug it now.</p>
+            <p>The FM-1 restarted with Sornyak. You can unplug it now.</p>
             <p id="done-backup">To keep a copy of your sounds and patterns, use “<a href="#backup">Back up and restore</a>” below while the FM-1 is plugged in.</p>
           </div>
           <div class="panel panel--bad" id="interrupted" role="alert" hidden>
             <h3>The install stopped. In most cases, you can start it again.</h3>
             <p><b>Stopped before “Switching to update mode”?</b> Nothing was written. Plug the cable back in and press Install again.</p>
             <p><b>Stopped while writing, with the FM-1 still on?</b> It waits in update mode, with a black screen. Plug the cable back in and press Install again. Writing starts again from the beginning.</p>
-            <p><b>Did it switch off, or did the battery die?</b> Switch it on. Three short flashes of the key lights and a black screen mean update mode: press Install again. This only works if the FM-1 already ran CoralFlower, or ChoralRoot 0.16 or later.</p>
+            <p><b>Did it switch off, or did the battery die?</b> Switch it on. Three short flashes of the key lights and a black screen mean update mode: press Install again. This only works if the FM-1 already ran Sornyak, or ChoralRoot 0.16 or later.</p>
             <p><b>One long flash, no flash, or a USB disk called WL82 UBOOT1.00?</b> See “<a href="#dark">Device not found</a>” below.</p>
           </div>
         </div>
@@ -80,7 +80,7 @@
       </div>
       <div class="hero__visual">
         <div class="device">
-          <div class="device__bezel"><img src="images/grow.gif" width="480" height="280" alt="A pink pixel flower grows on the FM-1's screen as chords are played" fetchpriority="high"></div>
+          <div class="device__bezel"><img src="images/grow.gif" width="480" height="280" alt="On the FM-1's screen a small yellow moose shines a torch while rings of butterflies circle it" fetchpriority="high"></div>
         </div>
       </div>
     </div>
@@ -104,7 +104,7 @@
       <div class="section-head">
         <p class="eyebrow"><span class="ramp ramp--dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>Features</p>
         <h2 class="display-2" id="features-title">Chords without the theory</h2>
-        <p class="lead">The lower keys play the notes of a scale you choose. Press an upper key, and every note becomes a chord: major, minor and sus, plus major and minor 6, 7 and add9. The chord stays on until you choose another one. CoralFlower is inspired by the Telepathic Instruments Orchid. Its controls are redesigned for the FM-1’s keys and buttons, because every instrument is played differently.</p>
+        <p class="lead">The lower keys play the notes of a scale you choose. Press an upper key, and every note becomes a chord: major, minor and sus, plus major and minor 6, 7 and add9. The chord stays on until you choose another one. Sornyak is inspired by the Telepathic Instruments Orchid. Its controls are redesigned for the FM-1’s keys and buttons, because every instrument is played differently.</p>
       </div>
       <!-- the newest feature: a stage of its own on the cream, its screen playing, one action -->
       <article class="feature-new scope-stage" aria-labelledby="new-title">
@@ -148,13 +148,13 @@
     <div class="container garden__grid">
       <div class="section-head garden__head">
         <p class="eyebrow"><span class="ramp ramp--dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>The garden</p>
-        <h2 class="display-2" id="garden-title">A flower grows from your chords</h2>
-        <p class="lead">While you play, a flower grows on the FM-1 screen. Each note of the chord adds a part: a flower, a bud, a cluster of berries. In the Side key layout, a coral grows instead.</p>
+        <h2 class="display-2" id="garden-title">A night that grows with your music</h2>
+        <p class="lead">While you play, a small yellow moose sits on a hill at night with a torch, and butterflies circle it: one more ring for each track you record. In the Side key layout, the Sornyak grows a tier for each track and shines when all four are recorded.</p>
         <p class="caption">The plant’s structure follows PlantStudio, a program that models real plants.</p>
       </div>
       <div class="garden__screens">
-        <figure class="screen"><img src="images/home.png" width="480" height="480" alt="The Top layout: the chord's name above a pink flower" loading="lazy"><figcaption>Top layout: a flower</figcaption></figure>
-        <figure class="screen"><img src="images/coral.png" width="480" height="480" alt="The Side layout: a pink coral" loading="lazy"><figcaption>Side layout: a coral</figcaption></figure>
+        <figure class="screen"><img src="images/home.png" width="480" height="480" alt="The Top layout: the chord's name above the moose with its torch" loading="lazy"><figcaption>Top layout: the torch</figcaption></figure>
+        <figure class="screen"><img src="images/sornyak.png" width="480" height="480" alt="The Side layout: the Sornyak on a night meadow" loading="lazy"><figcaption>Side layout: the Sornyak</figcaption></figure>
       </div>
     </div>
   </section>
@@ -174,7 +174,7 @@
               <li>Quit other apps that use MIDI, such as a DAW or a synth editor.</li>
               <li><b>Keep this page open</b> and the computer awake.</li>
             </ol>
-            <p class="note note--warn"><b>Installing firmware is at your own risk.</b> CoralFlower is free software with no warranty. You can go back: the official firmware is on <a href="https://www.m-vave.com/download" target="_blank" rel="noopener">m-vave.com</a>.</p>
+            <p class="note note--warn"><b>Installing firmware is at your own risk.</b> Sornyak is free software with no warranty. You can go back: the official firmware is on <a href="https://www.m-vave.com/download" target="_blank" rel="noopener">m-vave.com</a>.</p>
           </div>
       </details>
       <ol class="grid grid--3 steps">
@@ -214,7 +214,7 @@
         <div class="card card--icon">
           <svg class="pixel-icon" viewBox="0 0 12 12" width="48" height="48" aria-hidden="true"><path class="px-sea" d="M5 0h2v1h-2zM5 1h2v1h-2zM5 2h2v1h-2zM5 3h2v1h-2zM3 4h6v1h-6zM4 5h4v1h-4zM5 6h2v1h-2z"/><path class="px-ash" d="M1 8h1v1h-1zM10 8h1v1h-1zM1 9h1v1h-1zM10 9h1v1h-1zM1 10h10v1h-10z"/><path class="px-lime" d="M3 9h6v1h-6z"/></svg>
           <h3 class="card__title">Sounds backed up before updates</h3>
-          <p class="card__text">If the FM-1 runs CoralFlower, ChoralRoot or Felucca, the installer first saves its sounds, patterns and settings to a file. The official firmware can’t be backed up.</p>
+          <p class="card__text">If the FM-1 runs Sornyak, ChoralRoot or Felucca, the installer first saves its sounds, patterns and settings to a file. The official firmware can’t be backed up.</p>
         </div>
         <div class="card card--icon">
           <svg class="pixel-icon" viewBox="0 0 12 12" width="48" height="48" aria-hidden="true"><path class="px-fire" d="M3 1h1v1h-1zM2 2h2v1h-2zM1 3h9v1h-9zM2 4h2v1h-2zM10 4h1v1h-1zM3 5h1v1h-1zM11 5h1v1h-1zM11 6h1v1h-1zM11 7h1v1h-1zM10 8h1v1h-1zM2 9h8v1h-8z"/></svg>
@@ -239,7 +239,7 @@
               <div>
                 <p>A backup is one .json file. It holds everything saved on the FM-1: your settings, the sequencer’s patterns and song, sound banks and 32 user sounds.</p>
                 <p>Restore copies a backup onto the FM-1. It checks every part before it writes, then restarts the FM-1.</p>
-                <p>Backup and restore work with CoralFlower, ChoralRoot and Felucca. The official firmware can’t make backups.</p>
+                <p>Backup and restore work with Sornyak, ChoralRoot and Felucca. The official firmware can’t make backups.</p>
               </div>
               <div>
                 <div class="actions"><button class="btn btn--secondary" id="backup-go" type="button" disabled>Back up</button></div>
@@ -259,7 +259,7 @@
           <div class="fold__body">
             <div class="fold__cols">
               <div>
-                <p class="note note--warn">The official firmware can’t use CoralFlower’s sounds, patterns or settings, so this page saves them to a backup file first.</p>
+                <p class="note note--warn">The official firmware can’t use Sornyak’s sounds, patterns or settings, so this page saves them to a backup file first.</p>
                 <p>Download the official FM-1 V15 from <a href="https://www.m-vave.com/download" target="_blank" rel="noopener">M-VAVE Downloads</a>. Then choose its FM-1.fwsc file here, exactly as downloaded. Your browser checks the file, and nothing is uploaded.</p>
               </div>
               <div>
@@ -277,7 +277,7 @@
             <div class="panel panel--ok" id="stock-done" role="status" hidden>
               <p class="title" id="stock-done-line"></p>
               <p id="stock-done-data"></p>
-              <p>To come back, install CoralFlower with the Install button at the top. Then press Restore and choose that backup file.</p>
+              <p>To come back, install Sornyak with the Install button at the top. Then press Restore and choose that backup file.</p>
             </div>
             <div class="panel panel--bad" id="stock-interrupted" role="alert" hidden>
               <h3>The return to the official firmware stopped.</h3>
@@ -294,9 +294,9 @@
             <div class="fold__cols">
               <div>
                 <p><b>Check the cable first.</b> Use a data cable, straight to the computer, not through a hub. Quit other apps that use MIDI. Switch the FM-1 on and press Install again.</p>
-                <p><b>Start update mode by hand.</b> In update mode, the screen stays black and the FM-1 waits for new firmware. Switch the FM-1 off. Hold OCT&minus; and switch it on. When the key lights flash three times and the screen stays black, it is in update mode: press Install. To leave without installing, switch the FM-1 off and on. This works with CoralFlower, or ChoralRoot 0.16 or later.</p>
+                <p><b>Start update mode by hand.</b> In update mode, the screen stays black and the FM-1 waits for new firmware. Switch the FM-1 off. Hold OCT&minus; and switch it on. When the key lights flash three times and the screen stays black, it is in update mode: press Install. To leave without installing, switch the FM-1 off and on. This works with Sornyak, or ChoralRoot 0.16 or later.</p>
                 <p><b>One long flash instead of three?</b> Switch off for 10 seconds and try once more. A second long flash means the FM-1 can’t start update mode by itself. Until you switch it off, it appears as the USB disk described below.</p>
-                <p><b>While CoralFlower runs,</b> you can also hold OCT&minus;, OCT+ and HOME for five seconds. A countdown appears; let go to cancel. When it ends, the FM-1 is in update mode.</p>
+                <p><b>While Sornyak runs,</b> you can also hold OCT&minus;, OCT+ and HOME for five seconds. A countdown appears; let go to cancel. When it ends, the FM-1 is in update mode.</p>
               </div>
               <div>
                 <p><b>A screen that says SAFE MODE?</b> The firmware crashed twice while starting, so it now starts without your saved data. That data stays untouched. Back up and Install both work in safe mode. To try your saved data again, switch the FM-1 off and on.</p>
@@ -350,7 +350,7 @@
       </details>
       <details class="fold">
         <summary>Will I lose my sounds?</summary>
-        <div class="fold__body"><p>From CoralFlower, ChoralRoot or Felucca: no. An update keeps CoralFlower’s sounds, and the installer saves the others to a file first. From the official firmware: CoralFlower can’t use its sounds, and this page can’t save them.</p></div>
+        <div class="fold__body"><p>From Sornyak, ChoralRoot or Felucca: no. An update keeps Sornyak’s sounds, and the installer saves the others to a file first. From the official firmware: Sornyak can’t use its sounds, and this page can’t save them.</p></div>
       </details>
       <details class="fold">
         <summary>Which firmware can I install over?</summary>
@@ -394,15 +394,15 @@
     <section class="supportcard" id="support" aria-label="Support CoralFlower">
       <div>
         <b>Support CoralFlower</b>
-        <span>CoralFlower has no ads and no paid version. Donations pay for new features and more free tools for musicians.</span>
+        <span>Sornyak is a fork of CoralFlower, and has no ads and no paid version. Donations here go to CoralFlower’s author.</span>
       </div>
       <button id="supportBtn2" class="btn btn--support" type="button" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.35 20.13c-.76.69-1.93.69-2.69-.01l-.11-.1C5.3 15.27 1.87 12.16 2 8.28c.06-1.7.93-3.33 2.34-4.29 2.64-1.8 5.9-.96 7.66 1.1 1.76-2.06 5.02-2.91 7.66-1.1 1.41.96 2.28 2.59 2.34 4.29.14 3.88-3.3 6.99-8.55 11.76z"/></svg>Support</button>
     </section>
     <div class="site-footer__grid">
       <div>
-        <p><a class="brand" href="./"><img src="favicon.svg" width="28" height="28" alt=""><span><span class="brand-a">Coral</span><span class="brand-b">Flower</span></span></a></p>
-        <p>CoralFlower is built on ChoralRoot FM-1 by its contributors, <a href="https://github.com/hugelton/Felucca" target="_blank" rel="noopener">Felucca</a> by Leo Kuroshita (Hügelton Instruments) and the FM engine of Melodee. It is free software under the <a href="firmware/LICENSE">GPL-3.0</a>, with no warranty. Each firmware file also contains three JieLi AC79 SDK files under Apache-2.0. Fonts: Departure Mono and Inter Tight, under the SIL OFL 1.1.</p>
-        <p>M-VAVE and FM-1 are trademarks of their respective owners. Orchid is a product of Telepathic Instruments. CoralFlower is not affiliated with M-VAVE, Cuvave or Telepathic Instruments.</p>
+        <p><a class="brand" href="./"><img src="favicon.svg" width="28" height="28" alt=""><span><span class="brand-a">Sorn</span><span class="brand-b">yak</span></span></a></p>
+        <p>Sornyak is a fork of <a href="https://github.com/FicusFicusov/CoralFlower" target="_blank" rel="noopener">CoralFlower</a>. CoralFlower is built on ChoralRoot FM-1 by its contributors, <a href="https://github.com/hugelton/Felucca" target="_blank" rel="noopener">Felucca</a> by Leo Kuroshita (Hügelton Instruments) and the FM engine of Melodee. It is free software under the <a href="firmware/LICENSE">GPL-3.0</a>, with no warranty. Each firmware file also contains three JieLi AC79 SDK files under Apache-2.0. Fonts: Departure Mono and Inter Tight, under the SIL OFL 1.1.</p>
+        <p>M-VAVE and FM-1 are trademarks of their respective owners. Orchid is a product of Telepathic Instruments. Sornyak is not affiliated with M-VAVE, Cuvave or Telepathic Instruments.</p>
       </div>
       <nav aria-labelledby="foot-site">
         <h2 id="foot-site">Site</h2>
@@ -415,7 +415,7 @@
         </ul>
       </nav>
       <nav aria-labelledby="foot-contact">
-        <h2 id="foot-contact">Contact</h2>
+        <h2 id="foot-contact">CoralFlower’s author</h2>
         <ul>
           <li><a href="https://t.me/ficusficusov" target="_blank" rel="noopener">Telegram channel</a></li>
           <li><a href="mailto:iambemoli@gmail.com">iambemoli@gmail.com</a></li>
@@ -429,7 +429,7 @@
 <dialog id="donate" class="donate" aria-labelledby="donateTitle">
   <form method="dialog"><button class="x" aria-label="Close">&times;</button></form>
   <h2 id="donateTitle">Support CoralFlower</h2>
-  <p>CoralFlower is free, open source and ad-free. A donation is not a payment: it funds new features and more free tools for musicians. Thank you for helping it grow.</p>
+  <p>Sornyak is a fork of CoralFlower. These wallets and contacts are CoralFlower’s author’s: a donation funds CoralFlower, the project Sornyak is built on. A donation is not a payment.</p>
   <div id="wallets"></div>
   <p class="fine">Send only the coin shown, on the network shown; anything else will be lost. A crypto transfer is a voluntary gift: nothing is sold in return.</p>
   <h3>Contact</h3>
@@ -442,7 +442,7 @@ import { Updater, classifyFirmware, refusalText } from "./fm1ota.js";
 import { BackupConnection, captureBackup, restoreBackup, deviceInfo, restartDevice, readBackup, backupFamily, backupFileName, objectNames } from "./fm1backup.js";
 
 const $ = (id) => document.getElementById(id);
-const PRODUCT = "FM-1_930";                      // CoralFlower's identity (tools/build.py PRODUCT): every package, every version
+const PRODUCT = "FM-1_930";                      // Sornyak's identity (tools/build.py PRODUCT): every package, every version
 const MODEL = PRODUCT.split("_")[0];
 const LOADER_MARK = "FELUCCA-LOADER-1";          // Felucca's update loader (tools/fm1pkg_make.py ota.bin): never a vendor one
 const PKG_FLASH = 0x93000, PKG_APP_BASE = 0x4000; // the FM-1 flash layout of every fm1pkg_make.py package
@@ -480,25 +480,25 @@ const TEXT = {
     newest: "Newest",
     noRelease: "No release yet: the first one is still being tested.",
     pkgChecking: "Checking {name} …",
-    pkgOk: "Ready to install {name}. Your browser checked it: a complete, undamaged CoralFlower build.",
-    pkgRelOk: "Ready to install CoralFlower {version}. The file matches the released one.",
+    pkgOk: "Ready to install {name}. Your browser checked it: a complete, undamaged Sornyak build.",
+    pkgRelOk: "Ready to install Sornyak {version}. The file matches the released one.",
     pkgSum: "SHA-256 {sum}",
     pkgNotFm1: "{name} isn’t an FM-1 firmware file (.fwsc). Choose another file.",
-    pkgStock: "{name} is the official M-VAVE firmware ({id}), not CoralFlower. To go back to it, use “Return to the official firmware” below.",
-    pkgIdentity: "{name} isn’t a CoralFlower package: it’s made for {id}. Choose a CoralFlower build.",
-    pkgNoLoader: "{name} isn’t a complete CoralFlower build. Choose another file.",
-    pkgLayout: "{name} isn’t a complete CoralFlower build. Choose another file.",
+    pkgStock: "{name} is the official M-VAVE firmware ({id}), not Sornyak. To go back to it, use “Return to the official firmware” below.",
+    pkgIdentity: "{name} isn’t a Sornyak package: it’s made for {id}. Choose a Sornyak build.",
+    pkgNoLoader: "{name} isn’t a complete Sornyak build. Choose another file.",
+    pkgLayout: "{name} isn’t a complete Sornyak build. Choose another file.",
     pkgDamaged: "{name} is damaged ({detail}). Download it again.",
-    pkgBadHash: "The file for CoralFlower {version} doesn’t match the released one. Reload the page.",
+    pkgBadHash: "The file for Sornyak {version} doesn’t match the released one. Reload the page.",
     pkgRead: "Couldn’t read {name}: {detail}",
     download: "Download {file}",
     // the backup
     backup: "Saving a backup ",
     backupSaved: "Backup saved: ",
     noBackup: "This FM-1 can’t be backed up from here (it runs the official firmware or an older Felucca).",
-    noBackupCf: "This CoralFlower build can’t make a backup, so the installer skips the backup. Your sounds and settings stay safe: the update only rewrites the firmware.",
+    noBackupCf: "This Sornyak build can’t make a backup, so the installer skips the backup. Your sounds and settings stay safe: the update only rewrites the firmware.",
     noBackupConfirm: "The FM-1 couldn’t be backed up. Install anyway, without a backup? Its saved sounds, patterns and settings may be lost.",
-    restoreOffer: "CoralFlower is installed. Restore the backup you just saved (settings, user sounds, FM6 patches)?",
+    restoreOffer: "Sornyak is installed. Restore the backup you just saved (settings, user sounds, FM6 patches)?",
     restoreConfirm: "Restore this backup onto the FM-1? It replaces what the FM-1 has saved, and the FM-1 restarts afterwards.",
     restoring: "Restoring ",
     restoreBusy: "Stop the loop on the FM-1 to continue the restore",
@@ -506,23 +506,23 @@ const TEXT = {
     restoreSkipped: " (not used by this firmware, kept in the file: ",
     badBackup: "Not a usable backup file: ",
     // the firmware that runs
-    forceConfirm: "Install CoralFlower over {name} anyway? This isn’t supported. An install like this has already left one FM-1 unable to start (recovery: github.com/Quixotic7/MvaveFM1Unbricker). Continue only if you can recover the FM-1 yourself.",
+    forceConfirm: "Install Sornyak over {name} anyway? This isn’t supported. An install like this has already left one FM-1 unable to start (recovery: github.com/Quixotic7/MvaveFM1Unbricker). Continue only if you can recover the FM-1 yourself.",
     cnTesting: "Looking for the FM-1. Nothing gets written.",
-    cnCf: "Your FM-1 runs {name}. Installing CoralFlower keeps your saved sounds and settings.",
-    cnOther: "Your FM-1 runs {name}. You can install CoralFlower over it.",
+    cnCf: "Your FM-1 runs {name}. Installing Sornyak keeps your saved sounds and settings.",
+    cnOther: "Your FM-1 runs {name}. You can install Sornyak over it.",
     cnLoader: "Your FM-1 is in update mode ({identity}). Either an update was cut off or someone started it by hand. Press Install to finish writing.",
     dnRuns: "Done. Your FM-1 now runs {name}.",
-    dnPlain: "Done. CoralFlower is installed.",
+    dnPlain: "Done. Sornyak is installed.",
     dnOther: "Written, but the FM-1 now says it runs {name}.",
     // the return to the official V15
     stockNeedBackup: "An FM-1 in update mode can’t be backed up. Tick “I’m finishing an update that was cut off” only if you already saved a backup.",
     stockValid: "The official V15 file is valid. Ready.",
-    stockConfirm: "Is the backup file saved on this computer? Then continue to install the official V15. The official firmware can’t open CoralFlower’s data.",
+    stockConfirm: "Is the backup file saved on this computer? Then continue to install the official V15. The official firmware can’t open Sornyak’s data.",
     stockError: "Not the official firmware file: ",
     stockWrongFile: "Choose the unmodified official FM-1 V15 file (FM-1.fwsc).",
     stockDnLine: "The FM-1 now runs the official V15 ({identity}).",
-    stockDnSaved: "CoralFlower’s sounds, patterns and settings are in the backup saved before the write: {file}.",
-    stockDnEarlier: "No backup was saved this time. CoralFlower’s sounds, patterns and settings are in the backup you saved earlier.",
+    stockDnSaved: "Sornyak’s sounds, patterns and settings are in the backup saved before the write: {file}.",
+    stockDnEarlier: "No backup was saved this time. Sornyak’s sounds, patterns and settings are in the backup you saved earlier.",
   },
 };
 const lang = "en";
@@ -668,7 +668,7 @@ function pkgFail(e, name) {
 }
 
 // ---- the choice: a version of firmware/releases.json (chips), or a file from this computer ----
-const pkgFileName = (version) => `coralflower-${String(version).replace(/[^A-Za-z0-9.-]/g, "-")}.fwsc`;
+const pkgFileName = (version) => `sornyak-${String(version).replace(/[^A-Za-z0-9.-]/g, "-")}.fwsc`;
 async function loadReleases() {                  // -> the usable entries, newest first; [] when there is no list
   let data;
   try {
@@ -694,7 +694,7 @@ function renderPick() {
   $("versions").hidden = !any; $("rel-some").hidden = !any; $("rel-none").hidden = any;
   $("versions").innerHTML = releases.map((r, i) =>
     `<button type="button" class="chip" data-ver="${esc(r.version)}" aria-pressed="${!!(pick && pick.rel === r)}"${writing ? " disabled" : ""}>` +
-    `<b>CoralFlower ${esc(r.version)}</b><span>${[i === 0 ? t("newest") : "", dateText(r.date)].filter(Boolean).map(esc).join(" · ")}</span></button>`).join("");
+    `<b>Sornyak ${esc(r.version)}</b><span>${[i === 0 ? t("newest") : "", dateText(r.date)].filter(Boolean).map(esc).join(" · ")}</span></button>`).join("");
   $("go").textContent = pick && image ? tv("installV", { name: pick.label }) : t("installNone");
   // no version to install yet (no release, nothing chosen): the line under the button says why it is off
   $("ver").textContent = pick ? [pick.label, pick.rel ? dateText(pick.rel.date) : ""].filter(Boolean).join(" · ") : any ? "" : t("noRelease");
@@ -708,7 +708,7 @@ function newChoice(p) {                          // a new choice: nothing checke
   return pkgEpoch;
 }
 async function loadRelease(r) {
-  const epoch = newChoice({ rel: r, label: `CoralFlower ${r.version}`, file: r.file });
+  const epoch = newChoice({ rel: r, label: `Sornyak ${r.version}`, file: r.file });
   $("pkg-name").textContent = t("noFile"); $("pkg-file").value = "";
   pkgSay(tv("pkgChecking", { name: r.file }));
   try {
@@ -801,7 +801,7 @@ async function readBack(up) {                    // -> the INFO version of what 
 }
 function finishInstall(runs) {
   unit = null; unitAsked = false; $("unit").hidden = true;
-  $("done-line").textContent = !runs ? t("dnPlain") : /^coralflower\b/i.test(runs) ? tv("dnRuns", { name: runs }) : tv("dnOther", { name: runs });
+  $("done-line").textContent = !runs ? t("dnPlain") : /^(sornyak|coralflower)\b/i.test(runs) ? tv("dnRuns", { name: runs }) : tv("dnOther", { name: runs });
   $("done").hidden = false;
 }
 $("go").addEventListener("click", async () => {
@@ -854,7 +854,7 @@ $("go").addEventListener("click", async () => {
       const noInfo = fw && !fw.version;
       if ($("backup-first").checked && noInfo && fw.kind === "coralflower") {
         $("backup-note").textContent = t("noBackupCf"); $("backup-note").hidden = false;
-        log("backup: skipped (no INFO answer: a CoralFlower build without the backup protocol)");
+        log("backup: skipped (no INFO answer: a Sornyak build without the backup protocol)");
       } else if ($("backup-first").checked && noInfo) {
         log(`backup: ${fw.identity} gives no INFO answer: no backup protocol`);
         if (!confirm(t("noBackupConfirm"))) { sayK("cancelled"); lockInstaller(false); return; }
@@ -1018,7 +1018,7 @@ const ready = loadReleases().then((list) => {
   if (!releases.length || pick) return;
   // no Web MIDI (a phone, Safari, Firefox): the newest version is named, but its 600 KB package is not downloaded
   if (canMidi) return loadRelease(releases[0]);
-  pick = { rel: releases[0], label: `CoralFlower ${releases[0].version}`, file: releases[0].file }; renderPick();
+  pick = { rel: releases[0], label: `Sornyak ${releases[0].version}`, file: releases[0].file }; renderPick();
 });
 window.installerReady = ready;                    // (the tests wait for it)
 </script>

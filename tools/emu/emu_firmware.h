@@ -136,7 +136,7 @@ static void mix_block(int32_t *out, uint32_t n)        /* the audio ISR's block:
 #define CV_ROWS 120u                                  /* gfx.c's canvas: CoralFlower's framebuffer (cf_fb.c) */
 #endif
 #ifndef FELUCCA_VERSION
-#define FELUCCA_VERSION "CoralFlower EMU"
+#define FELUCCA_VERSION "Sornyak EMU"
 #endif
 #include "../../firmware/src/gfx.c"
 #include "../../firmware/src/panel.c"

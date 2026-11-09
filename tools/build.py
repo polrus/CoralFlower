@@ -9,9 +9,9 @@
 The unit is firmware/src/coralflower.c (CoralFlower's single compilation unit, after ChoralRoot's choralroot.c, a
 fork of Felucca's felucca.c). Outputs in build/: coralflower.bin (app.bin: the boot stub's 0xEE0 bytes, then the app),
 coralflower.elf, coralflower.dis (the app), stub/stub.{bin,elf,dis} (the boot stub, firmware/stub), loader/ota.bin
-(update loader), coralflower.fwsc (package, identity FM-1_930). A release build (--release X.Y) keeps the identity,
-sets the version string to "CoralFlower X.Y" and writes coralflower-X.Y.fwsc and a folder release-X.Y/ with the
-package, the app (coralflower-X.Y-app.bin), SHA256SUMS and the licence files (LICENSE, LICENSING.md, LICENSES/).
+(update loader), sornyak.fwsc (package, identity FM-1_930). A release build (--release X.Y) keeps the identity,
+sets the version string to "Sornyak X.Y" and writes sornyak-X.Y.fwsc and a folder release-X.Y/ with the
+package, the app (sornyak-X.Y-app.bin), SHA256SUMS and the licence files (LICENSE, LICENSING.md, LICENSES/).
 After the checks it prints the section sizes against the XIP slot and the RAM / POOL / NOINIT regions.
 README.md ("Build it yourself") and build.sh have the toolchain and the SDK.
 
@@ -62,7 +62,8 @@ SDK_SHA256 = {
     "cfg/eq_cfg_hw.bin": "41167491bffed4651750719c973d2758adeb9021a5670d02d6a53c85ed80ea7d",
 }
 
-UNIT = "coralflower"                # firmware/src/UNIT.c; outputs build/UNIT.{bin,elf,dis,fwsc}
+UNIT = "coralflower"                # firmware/src/UNIT.c; outputs build/UNIT.{bin,elf,dis}
+PKG = "sornyak"                     # the packages' names: build/PKG.fwsc, a release's PKG-X.Y.fwsc and PKG-X.Y-app.bin
 PRODUCT = "FM-1_930"                # package identity (CoralFlower: constant, releases too)
 VERSION = None                      # FELUCCA_VERSION for release builds (default: firmware/src/coralflower.c)
 XIP_LEN, RAM_LEN, POOL_LEN, NOINIT_LEN = fm1pkg_make.BODY_MAX, 96 * 1024, 0x54000, 0x3D30   # firmware/app.ld
@@ -441,7 +442,7 @@ def mmio_check():
 def main():
     global VERSION
     ap = argparse.ArgumentParser()
-    ap.add_argument("--release", metavar="X.Y", help=f"release build: identity {PRODUCT}, version string CoralFlower X.Y")
+    ap.add_argument("--release", metavar="X.Y", help=f"release build: identity {PRODUCT}, version string Sornyak X.Y")
     ap.add_argument("--sdk", type=Path, help="JieLi AC79 SDK checkout (default: $AC79_SDK)")
     ap.add_argument("--gen-only", action="store_true",
                     help="only the generated headers, into build/gen (no toolchain, no SDK)")
@@ -450,13 +451,13 @@ def main():
         generate()
         print(f"generated {GEN}: {', '.join(sorted(p.name for p in GEN.glob('*.h')))}")
         return 0
-    name = f"{UNIT}.fwsc"
+    name = f"{PKG}.fwsc"
     if a.release:                   # the identity stays FM-1_930: only the version string and the names change
         m = re.fullmatch(r"\d+\.\d+(?:\.\d+)?(?:-[A-Za-z0-9.]+)?", a.release)   # the identity never encodes it
         if not m:
             raise SystemExit(f"--release {a.release}: use X.Y, X.Y.Z or X.Y-suffix")
-        VERSION = "CoralFlower " + a.release.lower()     # e.g. CoralFlower 0.1, CoralFlower 0.1-rc1 (the INFO text)
-        name = f"{UNIT}-{a.release}.fwsc"
+        VERSION = "Sornyak " + a.release.lower()     # e.g. Sornyak 0.1, Sornyak 0.1-rc1 (the INFO text)
+        name = f"{PKG}-{a.release}.fwsc"
     fm1pkg_make.SDK = a.sdk
     for rel, sha in SDK_SHA256.items():          # fail early without the SDK
         if hashlib.sha256(fm1pkg_make.sdk_file(rel)).hexdigest() != sha:
@@ -498,7 +499,7 @@ def main():
         rel = OUT / f"release-{a.release}"
         shutil.rmtree(rel, ignore_errors=True)
         (rel / "LICENSES").mkdir(parents=True)
-        app = f"{UNIT}-{a.release}-app.bin"
+        app = f"{PKG}-{a.release}-app.bin"
         (rel / name).write_bytes(pkg)
         (rel / app).write_bytes(img)
         (rel / "SHA256SUMS").write_text("".join(f"{hashlib.sha256(b).hexdigest()}  {n}\n"

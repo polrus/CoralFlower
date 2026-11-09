@@ -1,21 +1,22 @@
-# CoralFlower
+# Sornyak
 
-**Your M-VAVE FM-1, made for chords.** CoralFlower is free firmware for the FM-1. Press a chord key, and every note
-you play becomes a whole chord, with a bass underneath. While you play, a pixel flower grows from your chords.
+> **Sornyak is a fork of [CoralFlower](https://github.com/FicusFicusov/CoralFlower)** by FicusFicusov. It keeps
+> CoralFlower's instrument and replaces its plants with two night scenes that grow with your recording: the torch
+> and the Sornyak.
+> Everything else in this README is CoralFlower's work, described under the fork's name.
 
-CoralFlower is inspired by the Telepathic Instruments Orchid. Its controls are redesigned for the FM-1's keys and
+**Your M-VAVE FM-1, made for chords.** Sornyak is free firmware for the FM-1. Press a chord key, and every note
+you play becomes a whole chord, with a bass underneath. While you play, a small moose on the screen listens.
+
+Sornyak is inspired by the Telepathic Instruments Orchid. Its controls are redesigned for the FM-1's keys and
 buttons, because every instrument is played differently.
 
-<p align="center"><img src="docs/images/grow.gif" width="480" alt="A pink pixel flower growing and changing as chords are played"></p>
+<p align="center"><img src="docs/images/grow.gif" width="480" alt="A small yellow moose on a night hill shines a torch into the sky while rings of butterflies circle it, one more ring for each track recorded"></p>
+<p align="center"><img src="docs/images/sornyak.gif" width="480" alt="The Sornyak growing a tier for each track recorded, its light breathing with the music, until it shines with all four"></p>
 
-<p align="center">
-  <a href="https://ficusficusov.github.io/CoralFlower/play/"><b>Play it in your browser</b></a> ·
-  <a href="https://ficusficusov.github.io/CoralFlower/"><b>Install it on your FM-1</b></a> ·
-  <a href="https://github.com/FicusFicusov/CoralFlower/releases"><b>Releases</b></a>
-</p>
-
-Not sure yet? The browser version runs the same firmware with sound. Try it with your mouse or computer keyboard
-before you install anything.
+Sornyak has no published release or installer site yet. Until it does, build it yourself (below); the browser
+version and the installer of [CoralFlower's site](https://ficusficusov.github.io/CoralFlower/) run CoralFlower, not
+Sornyak.
 
 ## What it does
 
@@ -37,16 +38,24 @@ before you install anything.
 - **About 60 sounds** from two synth engines, virtual analogue and FM: pads, keys, strings and basses. Many pads
   change slowly on their own. Chords and basses have separate lists. Every sound has an editor, and you can save your
   own.
-- **A plant that grows from your music.** In the Top key layout a flower grows; in the Side layout, a coral.
-  Each note of the chord adds a part: a bloom, a bud, a cluster of berries. The plant's structure follows
-  [PlantStudio](https://github.com/pdfernhout/PlantStudio), a program that models real plants.
+- **The torch** (the Top layout). A small round yellow moose sits on a hill at night and shines a torch into the
+  stars; the beam swings slowly and moths drift up it. Butterflies circle the moose: one ring, and one more for each
+  track of the playing pattern that has something recorded. They flap and circle faster when the music is loud,
+  and every note makes some of them flash.
+- **The Sornyak** (the Side layout). A pale weed in tiers grows on a night meadow: one tier for each track of the
+  playing pattern that has something recorded (Chords, Bass, Layer, Drums). Its light follows the sound: the rays and
+  the halo breathe with the loudness, a strong chord flashes the sky, and every note lights a bud. With all four
+  tracks recorded, the crown shines over the whole sky. A small round yellow moose with headphones sits in the grass
+  and listens.
+- **Live over a pattern.** While a pattern plays, HOME's keys and PRESETS play a sound of their own on the Layer, so
+  the pattern's chords keep theirs; REC there records you into the pattern's Layer track.
 - **MIDI over USB.** The chords, the bass and the sequencer's Layer and Drums go out on four channels you set. The
   FM-1 follows an external MIDI clock or sends its own.
 
 <table>
   <tr>
-    <td><img src="docs/images/home.png" width="260" alt="HOME: the chord name above a pink flower"></td>
-    <td><img src="docs/images/coral.png" width="260" alt="The Side layout: a pink coral"></td>
+    <td><img src="docs/images/home.png" width="260" alt="HOME: the chord name above the moose with its torch"></td>
+    <td><img src="docs/images/sornyak.png" width="260" alt="The Side layout: the Sornyak with two tracks recorded, a small yellow moose listening"></td>
     <td><img src="docs/images/chord.png" width="260" alt="CHORD: a chord button's notes on a piano"></td>
   </tr>
   <tr>
@@ -58,15 +67,19 @@ before you install anything.
 
 ## Install
 
-1. Open <https://ficusficusov.github.io/CoralFlower/> in **Chrome or Edge** on a computer. Only these browsers can talk
+Sornyak's installer is this repository's site (`web/`, published by `.github/workflows/pages.yml` once GitHub Pages
+is turned on for the repository). It installs Sornyak over CoralFlower too, and keeps CoralFlower's backups working.
+CoralFlower's own installer does not know Sornyak and refuses to update it.
+
+1. Open Sornyak's installer page in **Chrome or Edge** on a computer. Only these browsers can talk
    to the FM-1 over USB.
 2. Connect the FM-1 straight to the computer. Don't use a USB hub, and use a cable that carries data, not a
    charge-only one.
 3. Press **Install on your FM-1**. Keep the page open and the cable in for about a minute. The FM-1 restarts as
-   CoralFlower.
+   Sornyak.
 
-If the FM-1 runs CoralFlower, ChoralRoot or Felucca, the installer saves your sounds to a file first. The official firmware's sounds can't be backed up. To return to the stock firmware, download FM-1
-V15 from [m-vave.com](https://www.m-vave.com) and install it from the same CoralFlower page. Installing firmware is at
+If the FM-1 runs Sornyak, ChoralRoot or Felucca, the installer saves your sounds to a file first. The official firmware's sounds can't be backed up. To return to the stock firmware, download FM-1
+V15 from [m-vave.com](https://www.m-vave.com) and install it from the same Sornyak page. Installing firmware is at
 your own risk.
 
 ## Build it yourself
@@ -86,24 +99,20 @@ your own risk.
 
 ## Credits and licence
 
-CoralFlower is a fork of [ChoralRoot FM-1](https://github.com/Quixotic7/ChoralRootFM1) by Quixotic7, which is itself
+Sornyak is a fork of [CoralFlower](https://github.com/FicusFicusov/CoralFlower) by FicusFicusov, which is a fork of
+[ChoralRoot FM-1](https://github.com/Quixotic7/ChoralRootFM1) by Quixotic7, itself
 a fork of [Felucca](https://github.com/hugelton/Felucca) by Leo Kuroshita (Hügelton Instruments). The FM engine comes
 from [Melodee](https://github.com/keremimo/melodee) by Kerem Kilic, and the screens use
 [Departure Mono](https://departuremono.com), a font by Helena Zhang. Thank you all.
 
-CoralFlower is free software under the GPL-3.0. `LICENSE` and `LICENSING.md` have the details.
+Sornyak is free software under the GPL-3.0. `LICENSE` and `LICENSING.md` have the details.
 
-M-VAVE and FM-1 are trademarks of their respective owners. Orchid is a product of Telepathic Instruments. CoralFlower
+M-VAVE and FM-1 are trademarks of their respective owners. Orchid is a product of Telepathic Instruments. Sornyak
 is not affiliated with M-VAVE, Cuvave or Telepathic Instruments.
 
 ## Feedback and support
 
-CoralFlower is new, and your feedback decides what comes next. Tell me what feels good, what feels off, and which
-sounds or features you want:
-
-- open a [GitHub issue](https://github.com/FicusFicusov/CoralFlower/issues);
-- email me at iambemoli@gmail.com;
-- follow the news in the Telegram channel [t.me/ficusficusov](https://t.me/ficusficusov).
-
-CoralFlower has no ads and no paid version. To support it, press **Support** on
-[the site](https://ficusficusov.github.io/CoralFlower/): it lists crypto wallets.
+For Sornyak (the view, the live Layer, the rename), open an issue in this repository. For everything else, the
+instrument is CoralFlower's: its author takes feedback through
+[CoralFlower's issues](https://github.com/FicusFicusov/CoralFlower/issues), and the **Support** button on the site
+sends donations to CoralFlower's author.

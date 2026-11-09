@@ -67,8 +67,8 @@ function parseIdentity(pkt) {
 
 // ---- which firmware runs: may CoralFlower be installed over it? (ChoralRoot's docs/INSTALL-COMPAT.md, plus CoralFlower
 // itself; tools/fm1_install.py classify_firmware is the same table). identity: the handshake text ("FM-1_015",
-// "FM-1_910", CoralFlower's "FM-1_930"); info: the version the backup protocol's INFO answers ("FELUCCA v1.0",
-// "MELODEE v0.11.1", "ChoralRoot 0.12", "CoralFlower 0.1"), null when it does not answer.
+// "FM-1_910", Sornyak's "FM-1_930"); info: the version the backup protocol's INFO answers ("FELUCCA v1.0",
+// "MELODEE v0.11.1", "ChoralRoot 0.12", "Sornyak 0.1"), null when it does not answer.
 // -> { verdict: "allow" | "refuse" | "loader", kind, name }. The 9xx identities are shared by every Felucca-based
 // firmware (FM-1_9XY from the release number: Felucca 0.9-beta FM-1_909, Felucca 1.0 FM-1_910, Sloop 2.0 FM-1_920 =
 // ChoralRoot's), so they are told apart by the INFO text only.
@@ -87,7 +87,7 @@ export function classifyFirmware(identity, info) {
   // CoralFlower's own identity without an INFO answer: an early CoralFlower build, before its backup protocol (any
   // other 9xx without INFO stays refused below)
   if (m[3] === "930" && !v) return { verdict: "allow", kind: "coralflower", name: CF_EARLY };
-  if (/^coralflower\b/i.test(v)) return { verdict: "allow", kind: "coralflower", name: v };   // an update of CoralFlower
+  if (/^(sornyak|coralflower)\b/i.test(v)) return { verdict: "allow", kind: "coralflower", name: v };   // an update of CoralFlower
   if (/^choralroot\b/i.test(v)) return { verdict: "allow", kind: "choralroot", name: v };
   if (/^melodee\b/i.test(v)) return { verdict: "allow", kind: "melodee", name: `Melodee (${v.slice(8)})` };
   if (/sloop/i.test(v)) return { verdict: "refuse", kind: "sloop", name: "Sloop" };
@@ -100,10 +100,10 @@ export function classifyFirmware(identity, info) {
 }
 export function refusalText(name) {
   return `Installing over ${name} is not supported: ${REFUSE_REASON} ` +
-    `Return to the official V15 firmware with the installer you used for ${name} first, then install CoralFlower. ` +
+    `Return to the official V15 firmware with the installer you used for ${name} first, then install Sornyak. ` +
     `If an FM-1 is already dark (black screen, a "WL82 UBOOT1.00" USB disk): ${RECOVERY_URL}`;
 }
-export const REFUSE_REASON = "An install over it has left an FM-1 that no longer starts, and the data it leaves in the flash is not known to be safe for CoralFlower.";
+export const REFUSE_REASON = "An install over it has left an FM-1 that no longer starts, and the data it leaves in the flash is not known to be safe for Sornyak.";
 
 // one MIDI in/out pair with a SysEx queue
 class Link {

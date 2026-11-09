@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Copyright (C) 2026 ChoralRoot FM-1 contributors (a fork of Felucca)
-// Copyright (C) 2026 CoralFlower contributors
+// Copyright (C) 2026 Sornyak contributors
 //
-// Node checks of CoralFlower's installer, on the site's first page web/index.html (no browser, no hardware), after
+// Node checks of Sornyak's installer, on the site's first page web/index.html (no browser, no hardware), after
 // ChoralRoot's web/test_installer.mjs. Run from the repo root:   node web/test_installer.mjs
-// - the classification (fm1ota.js classifyFirmware): ChoralRoot's table unchanged, CoralFlower over CoralFlower allowed;
+// - the classification (fm1ota.js classifyFirmware): ChoralRoot's table unchanged, Sornyak over Sornyak allowed;
 //   tools/fm1_install.py classify_firmware gives the same answers (when python3 is there); fm1backup.js backupFamily
 // - the page's shape: one module script that imports fm1pkg.js, fm1ota.js and fm1backup.js from its own folder (every
 //   name it imports is exported there), nothing from elsewhere; the look from site.css alone (no <style>, no colour in
@@ -14,7 +14,7 @@
 // - the page itself (its module script with the three libraries inlined, as a browser links them) against a DOM stub and
 //   a simulated FM-1: no Web MIDI; no releases.json (a file only); the file check (a well-formed FM-1_930 package made
 //   by a JS port of tools/fm1pkg_make.py accepted; another identity, the official firmware, no Felucca loader, a damaged
-//   file, not a package: refused, Install stays off); installs over the stock firmware, CoralFlower, ChoralRoot,
+//   file, not a package: refused, Install stays off); installs over the stock firmware, Sornyak, ChoralRoot,
 //   Felucca (backup, then the restore offered), the refusals and the override, resume from update mode, the errors;
 //   "What is on my FM-1?"; the hosted versions of releases.json (sha256-checked); Back up and Restore; the return to V15
 
@@ -47,7 +47,7 @@ async function until(cond, ms = 4000) {         // real time: the page's own wai
 }
 
 /* ------------------------------------------------------ (a) the classification --- */
-const GUARD_CASES = [                            // ChoralRoot's tests/install_test.py table, and CoralFlower's rows
+const GUARD_CASES = [                            // ChoralRoot's tests/install_test.py table, and Sornyak's rows
   ["FM-1_015", null, "allow", "stock"], ["FM-1_014", null, "allow", "stock"],
   ["FM-1_920", "ChoralRoot 0.12", "allow", "choralroot"], ["FM-1_920", "ChoralRoot 1.0-rc1", "allow", "choralroot"],
   ["FM-1_910", "FELUCCA v1.0", "allow", "felucca"], ["FM-1_910", "FELUCCA v1.0.1", "allow", "felucca"],
@@ -58,24 +58,24 @@ const GUARD_CASES = [                            // ChoralRoot's tests/install_t
   ["FM-1_920", "FELUCCA 2.0 BETA", "refuse", "felucca-beta"], ["FM-1_000", null, "refuse", "sloop"],
   ["FM-1_900", null, "refuse", "unknown"], ["FM-1_920", null, "refuse", "unknown"], ["FM-1_500", null, "refuse", "unknown"],
   ["FM-1_910", "SOMETHING 3.0", "refuse", "unknown"], ["ota-FM-1_920", null, "loader", "loader"],
-  ["FM-1_930", "CoralFlower 0.1", "allow", "coralflower"], ["FM-1_930", "CoralFlower 1.0-rc1", "allow", "coralflower"],
-  ["FM-1_930", "CORALFLOWER 0.2", "allow", "coralflower"], ["FM-1_930", "CoralFlowerX 1", "refuse", "unknown"],
-  ["FM-1_930", null, "allow", "coralflower"], ["FM-1_930", "", "allow", "coralflower"],   // an early CoralFlower: no INFO
+  ["FM-1_930", "Sornyak 0.1", "allow", "coralflower"], ["FM-1_930", "Sornyak 1.0-rc1", "allow", "coralflower"],
+  ["FM-1_930", "CORALFLOWER 0.2", "allow", "coralflower"], ["FM-1_930", "CoralFlower 0.6.1", "allow", "coralflower"], ["FM-1_930", "SORNYAK 0.7", "allow", "coralflower"], ["FM-1_930", "SornyakX 1", "refuse", "unknown"],
+  ["FM-1_930", null, "allow", "coralflower"], ["FM-1_930", "", "allow", "coralflower"],   // an early Sornyak: no INFO
   ["FM-1_931", null, "refuse", "unknown"], ["FM-1_9300", null, "refuse", "unknown"], ["FM-1_929", null, "refuse", "unknown"],
   ["ota-FM-1_930", null, "loader", "loader"],
 ];
 {
   const bad = GUARD_CASES.filter(([i, v, verdict, kind]) => { const r = classifyFirmware(i, v); return r.verdict !== verdict || r.kind !== kind; });
-  ok(!bad.length, `classifyFirmware: ${GUARD_CASES.length} identity / INFO cases (ChoralRoot's, and CoralFlower over CoralFlower)${bad.length ? ": " + JSON.stringify(bad) : ""}`);
-  ok(classifyFirmware("FM-1_930", "CoralFlower 0.1").name === "CoralFlower 0.1", "classifyFirmware: CoralFlower is named by its INFO text");
+  ok(!bad.length, `classifyFirmware: ${GUARD_CASES.length} identity / INFO cases (ChoralRoot's, and Sornyak over Sornyak)${bad.length ? ": " + JSON.stringify(bad) : ""}`);
+  ok(classifyFirmware("FM-1_930", "Sornyak 0.1").name === "Sornyak 0.1", "classifyFirmware: Sornyak is named by its INFO text");
   ok(classifyFirmware("FM-1_930", null).name === "CoralFlower (an early build without backup support)" && CF_EARLY === classifyFirmware("FM-1_930", null).name,
     "classifyFirmware: FM-1_930 without INFO -> allow, \"CoralFlower (an early build without backup support)\"");
-  ok(refusalText("Sloop").includes("then install CoralFlower.") && refusalText("Sloop").includes("https://github.com/Quixotic7/MvaveFM1Unbricker") &&
-     !/ChoralRoot/.test(refusalText("Sloop")), "refusalText: names CoralFlower, links the recovery tools");
+  ok(refusalText("Sloop").includes("then install Sornyak.") && refusalText("Sloop").includes("https://github.com/Quixotic7/MvaveFM1Unbricker") &&
+     !/ChoralRoot/.test(refusalText("Sloop")), "refusalText: names Sornyak, links the recovery tools");
   const py = spawnSync("python3", ["-c", [
     "import json, sys", `sys.path.insert(0, ${JSON.stringify(join(ROOT, "tools"))})`, "import fm1_install as I",
     "cases = json.loads(sys.argv[1])",
-    "print(json.dumps([list(I.classify_firmware(i, v)) for i, v in cases] + [[I.family(f) for f in ('CoralFlower 0.1', 'ChoralRoot 0.2', 'FELUCCA v1.0', 'x')]]))",
+    "print(json.dumps([list(I.classify_firmware(i, v)) for i, v in cases] + [[I.family(f) for f in ('Sornyak 0.1', 'ChoralRoot 0.2', 'FELUCCA v1.0', 'x')]]))",
   ].join("\n"), JSON.stringify(GUARD_CASES.map(([i, v]) => [i, v]))], { encoding: "utf8" });
   if (py.status !== 0 || !py.stdout) console.log(`fm1_install.py classify_firmware: skipped (python3: ${py.error ? py.error.message : py.stderr.trim().split("\n").pop()})`);
   else {
@@ -84,8 +84,8 @@ const GUARD_CASES = [                            // ChoralRoot's tests/install_t
     ok(JSON.stringify(got) === JSON.stringify(want), "tools/fm1_install.py classify_firmware == fm1ota.js classifyFirmware (verdict, kind, name)");
     ok(fam.join() === "coralflower,choralroot,felucca,other", "tools/fm1_install.py family: coralflower, choralroot, felucca, other");
   }
-  ok(backupFamily("CoralFlower 0.1") === "coralflower" && backupFamily("ChoralRoot 0.21") === "choralroot" && backupFamily("FELUCCA v1.0") === "felucca" &&
-     backupFamily("MELODEE v1") === "other" && /^coralflower-backup-\d{8}\.json$/.test(backupFileName("CoralFlower 0.1")),
+  ok(backupFamily("Sornyak 0.1") === "coralflower" && backupFamily("ChoralRoot 0.21") === "choralroot" && backupFamily("FELUCCA v1.0") === "felucca" &&
+     backupFamily("MELODEE v1") === "other" && /^coralflower-backup-\d{8}\.json$/.test(backupFileName("Sornyak 0.1")),
      "fm1backup.js backupFamily: coralflower (coralflower-backup-YYYYMMDD.json), the others as before");
 }
 
@@ -104,13 +104,13 @@ const missingExports = imports.flatMap(({ names, from }) => {
   return names.filter((n) => !new RegExp(`^export (?:async )?(?:function|const|class|let) ${n}\\b`, "m").test(src)).map((n) => `${from}:${n}`);
 });
 ok(!missingExports.length, `page: every imported name is exported by its module${missingExports.length ? " (missing " + missingExports + ")" : ""}`);
-ok(/<title>CoralFlower[^<]*FM-1<\/title>/.test(html) && /<html lang="en">/.test(html) && count(html, "<h1") === 1, "page: title, lang, one h1");
+ok(/<title>Sornyak[^<]*FM-1<\/title>/.test(html) && /<html lang="en">/.test(html) && count(html, "<h1") === 1, "page: title, lang, one h1");
 for (const [f, at] of [["fonts/DepartureMono.woff", "Departure Mono"], ["fonts/InterTight-400.woff", "Inter Tight"], ["fonts/InterTight-600.woff", "Inter Tight"]])
   ok(existsSync(join(HERE, f)) && css.includes(`url("${f}")`) && css.includes(`font-family: "${at}"`), `site.css: the font ${f}, from this site`);
-ok(html.includes('class="brand"') && html.includes('<span class="brand-a">Coral</span><span class="brand-b">Flower</span>') &&
+ok(html.includes('class="brand"') && html.includes('<span class="brand-a">Sorn</span><span class="brand-b">yak</span>') &&
    ["#features", "#garden", "#safety", "#faq", "play/"].every((h) => html.includes(`<a href="${h}">`)) &&
    ["../#features", "../#garden", "../#safety", "../#faq"].every((h) => emu.includes(`<a href="${h}">`)) && emu.includes('<a href="./" aria-current="page">Play</a>'),
-   "page: the CoralFlower name and the same five links on both pages (four sections, Play)");
+   "page: the Sornyak name and the same five links on both pages (four sections, Play)");
 for (const [name, h] of [["web/index.html", html], ["tools/emu/web/index.html", emu]]) {
   const markup = h.replace(/<script[\s\S]*?<\/script>/g, "");
   const raw = (markup.match(/(?<!&)#[0-9a-fA-F]{3,8}\b/g) || []).filter((c) => !/^#110A02$/i.test(c));   // (theme-color: the bg token's value)
@@ -307,7 +307,7 @@ class FakeFM1 {
     this.image = image; this.served = 0; this.bad = 0; this.upgrades = 0; this.bkFrames = 0; this.bkCmds = []; this.boots = 0;
     this.loader = loader; this.final = final; this.onServe = onServe; this.bk = bk;
     this.access = { inputs: new Map(), outputs: new Map() };
-    this.boot(identity, identity.startsWith("ota-") ? "Felucca Update" : "CoralFlower FM-1");
+    this.boot(identity, identity.startsWith("ota-") ? "Felucca Update" : "Sornyak FM-1");
   }
   boot(identity, name) {
     this.identity = identity; this.waiting = null; this.queue = []; this.boots++;
@@ -346,7 +346,7 @@ class FakeFM1 {
       this.waiting = null; this.served++;
       if (this.onServe) this.onServe(this.served);
       if (addr === 0xE0000000) setTimeout(() => this.boot(this.loader, "Felucca Update"), 300);
-      else if (addr === 0xF0000000) setTimeout(() => this.boot(this.final, "CoralFlower FM-1"), 300);
+      else if (addr === 0xF0000000) setTimeout(() => this.boot(this.final, "Sornyak FM-1"), 300);
       else this.next();
     }
   }
@@ -380,7 +380,7 @@ function backupSide(version, ids, objs = [], refuse = []) {   // refuse: ids who
       if (op === 2) { const v = Uint8Array.from(b.staged.bytes); const rc = bkCrc(v) === b.staged.crc && !refuse.includes(id) ? 0 : 2; if (!rc) { b.objs.set(id, v); b.log.push(id); } return [op, id, rc]; }
       return [op, id, 0];
     }
-    if (cmd === 72 && /^(ChoralRoot|CoralFlower)/.test(version)) { b.restarts++; return [0]; }
+    if (cmd === 72 && /^(ChoralRoot|Sornyak)/.test(version)) { b.restarts++; return [0]; }
     return null;
   };
   return b;
@@ -389,7 +389,7 @@ const fill = (n, seed) => Uint8Array.from({ length: n }, (_, i) => (i * 31 + see
 const per = (n, magic, seed) => { const v = fill(n, seed); new DataView(v.buffer).setUint32(0, magic, true); return v; };
 const feluccaData = () => [[0, fill(3584, 1)], [1, per(572, 0x50455234, 2)], [2, fill(3584, 3)], [6, fill(3080, 4)], [8, fill(3472, 5)]];
 const crData = () => [[1, per(764, 0x50455235, 6)], [6, fill(3080, 7)], [9, fill(3536, 8)], [40, fill(46, 9)]];
-// CoralFlower 0.3.1: a sound bank, the settings, the loop and the sequencer's store in its six parts (5 x 3840 + 1136 B)
+// Sornyak 0.3.1: a sound bank, the settings, the loop and the sequencer's store in its six parts (5 x 3840 + 1136 B)
 const cfData = () => [[6, fill(3080, 10)], [30, fill(200, 11)], [31, fill(64, 12)],
   ...[50, 51, 52, 53, 54, 55].map((id, k) => [id, fill(k < 5 ? 3840 : 1136, 13 + k)])];
 const midiOf = (dev) => ({ requestMIDIAccess: async () => dev.access });
@@ -419,7 +419,7 @@ async function readyPage(dev, opts = {}) {
   const p = runPage({ navigator: midiOf(dev) });
   await p.ready;
   ok(!p.error && p.fetched.join() === "firmware/releases.json" && p.$.versions.hidden && !p.$["rel-none"].hidden && p.$["rel-some"].hidden &&
-     p.$.go.disabled && p.$.go.textContent === en.installNone && p.$.pkg.textContent === "" && p.$.ver.textContent === en.noRelease, "no releases.json (404): the file only, Install off and named \"Install CoralFlower\"");
+     p.$.go.disabled && p.$.go.textContent === en.installNone && p.$.pkg.textContent === "" && p.$.ver.textContent === en.noRelease, "no releases.json (404): the file only, Install off and named \"Install Sornyak\"");
   ok(/releases\.json: HTTP 404/.test(p.$.log.textContent), "no releases.json: the log says so");
   await p.$["pkg-pick"].fire("click");
   ok(p.$["pkg-file"].clicks === 1, "\"Choose a .fwsc file\" opens the file picker");
@@ -465,25 +465,25 @@ async function readyPage(dev, opts = {}) {
   ok(p.confirms.length === 1 && p.confirms[0].startsWith(en.noBackupConfirm) && !p.downloads.length && !dev.bkCmds.includes(65) && p.$["backup-note"].hidden,
     "install over stock: no INFO, so no backup tried -> asked once, as before");
   ok(p.$.done.hidden === false && p.$["done-line"].textContent === en.dnPlain && p.$.interrupted.hidden && !p.$.go.disabled,
-    "install over stock: the done panel (no INFO answer afterwards: \"CoralFlower is installed\"), unlocked");
+    "install over stock: the done panel (no INFO answer afterwards: \"Sornyak is installed\"), unlocked");
   ok(/^start /m.test(p.$.log.textContent) && /^write \d+/m.test(p.$.log.textContent) && /install: coralflower-test\.fwsc/.test(p.$.log.textContent), "install: the log lists the steps");
 }
 {
-  // CoralFlower over CoralFlower: backed up (coralflower-backup-*.json), no restore offered, the new version read back
-  const before = backupSide("CoralFlower 0.3.1", CF_BACKUP_IDS, cfData()), after = backupSide("CoralFlower 0.2", CR_BACKUP_IDS, crData());
+  // Sornyak over Sornyak: backed up (coralflower-backup-*.json), no restore offered, the new version read back
+  const before = backupSide("Sornyak 0.3.1", CF_BACKUP_IDS, cfData()), after = backupSide("Sornyak 0.2", CR_BACKUP_IDS, crData());
   const dev = new FakeFM1(image, { identity: "FM-1_930", bk: (id, boots) => (id.startsWith("ota-") ? null : boots < 3 ? before : after) });
   const p = await readyPage(dev);
   await p.$.go.fire("click");
   ok(p.downloads.length === 1 && /^coralflower-backup-\d{8}\.json$/.test(p.downloads[0].name) && !p.confirms.length && !before.log.length && !after.log.length,
-    `CoralFlower over CoralFlower: backed up first (${p.downloads[0]?.name}), no question, no restore`);
-  ok(/^backup CoralFlower 0\.3\.1: user sounds 1-16, CoralFlower settings, CoralFlower loop, CoralFlower patterns and song$/m.test(p.$.log.textContent),
-    "CoralFlower over CoralFlower: the backup holds the sequencer's six parts, named once in the log");
-  ok(p.$.status.textContent === en.done && dev.identity === "FM-1_930" && dev.bad === 0 && p.$["done-line"].textContent === "Done. Your FM-1 now runs CoralFlower 0.2.",
-    "CoralFlower over CoralFlower: installed, and the new version read back (\"now runs CoralFlower 0.2\")");
-  ok(/running: FM-1_930 CoralFlower 0\.3\.1 -> allow \(coralflower\)/.test(p.$.log.textContent), "CoralFlower over CoralFlower: classified allow (coralflower) in the log");
+    `Sornyak over Sornyak: backed up first (${p.downloads[0]?.name}), no question, no restore`);
+  ok(/^backup Sornyak 0\.3\.1: user sounds 1-16, Sornyak settings, Sornyak loop, Sornyak patterns and song$/m.test(p.$.log.textContent),
+    "Sornyak over Sornyak: the backup holds the sequencer's six parts, named once in the log");
+  ok(p.$.status.textContent === en.done && dev.identity === "FM-1_930" && dev.bad === 0 && p.$["done-line"].textContent === "Done. Your FM-1 now runs Sornyak 0.2.",
+    "Sornyak over Sornyak: installed, and the new version read back (\"now runs Sornyak 0.2\")");
+  ok(/running: FM-1_930 Sornyak 0\.3\.1 -> allow \(coralflower\)/.test(p.$.log.textContent), "Sornyak over Sornyak: classified allow (coralflower) in the log");
 }
 {
-  // over ChoralRoot: allowed, backed up, no restore offered (its data stays in the flash, CoralFlower uses it)
+  // over ChoralRoot: allowed, backed up, no restore offered (its data stays in the flash, Sornyak uses it)
   const cr = backupSide("ChoralRoot 0.21", CR_BACKUP_IDS, crData());
   const dev = new FakeFM1(image, { identity: "FM-1_920", bk: (id) => (id === "FM-1_920" ? cr : null) });
   const p = await readyPage(dev);
@@ -492,32 +492,32 @@ async function readyPage(dev, opts = {}) {
     "over ChoralRoot: backed up, installed, no restore offered");
 }
 {
-  // over Felucca 1.0: the backup first, then CoralFlower, then the backup offered back, restored, RESTART
-  const fel = backupSide("FELUCCA 1.0", BACKUP_IDS, feluccaData()), cf = backupSide("CoralFlower 0.2", CR_BACKUP_IDS);
+  // over Felucca 1.0: the backup first, then Sornyak, then the backup offered back, restored, RESTART
+  const fel = backupSide("FELUCCA 1.0", BACKUP_IDS, feluccaData()), cf = backupSide("Sornyak 0.2", CR_BACKUP_IDS);
   const dev = new FakeFM1(image, { identity: "FM-1_910", bk: (id) => (id === "FM-1_910" ? fel : id === "FM-1_930" ? cf : null) });
   const p = await readyPage(dev);
   await p.$.go.fire("click");
   ok(p.downloads.length === 1 && /^felucca-backup-\d{8}\.json$/.test(p.downloads[0].name) && p.confirms.length === 1 && p.confirms[0] === en.restoreOffer,
     "over Felucca: the backup saved first, then the restore offered");
   ok(cf.log.join() === "6,7,8,1" && cf.objs.get(6).every((v, i) => v === feluccaData()[3][1][i]) && cf.restarts === 1 && p.$.status.textContent.startsWith(en.restored) &&
-     p.$.done.hidden === false, "over Felucca: settings, banks, FM6 bank restored on CoralFlower, then RESTART; the done panel");
+     p.$.done.hidden === false, "over Felucca: settings, banks, FM6 bank restored on Sornyak, then RESTART; the done panel");
 }
 {
-  // an early CoralFlower build (FM-1_930, no INFO: no backup protocol): allowed; the backup skipped with a note, not failed
+  // an early Sornyak build (FM-1_930, no INFO: no backup protocol): allowed; the backup skipped with a note, not failed
   const dev = new FakeFM1(image, { identity: "FM-1_930" });
   const p = await readyPage(dev);
   await p.$.go.fire("click");
   ok(dev.identity === "FM-1_930" && dev.bad === 0 && dev.upgrades === 2 && p.$.status.textContent === en.done && p.$.done.hidden === false && p.$["force-box"].hidden !== false,
-    "early CoralFlower (FM-1_930, no INFO): allowed and installed");
+    "early Sornyak (FM-1_930, no INFO): allowed and installed");
   ok(!p.confirms.length && !p.downloads.length && !dev.bkCmds.includes(65) && p.$["backup-note"].hidden === false && p.$["backup-note"].textContent === en.noBackupCf &&
      /backup: skipped/.test(p.$.log.textContent) && /running: FM-1_930 -> allow \(coralflower\)/.test(p.$.log.textContent),
-     "early CoralFlower: the backup step skipped (no LIST, no question, no file), the note shown");
+     "early Sornyak: the backup step skipped (no LIST, no question, no file), the note shown");
   ok(/can’t make a backup/.test(en.noBackupCf) && /sounds and settings stay safe/.test(en.noBackupCf) && /only rewrites the firmware/.test(en.noBackupCf),
-    "early CoralFlower: the note says the backup is impossible and why the update keeps the saved sounds");
+    "early Sornyak: the note says the backup is impossible and why the update keeps the saved sounds");
   const again = await readyPage(new FakeFM1(image, { identity: "FM-1_930" }));
   again.$["backup-first"].checked = false;
   await again.$.go.fire("click");
-  ok(again.$["backup-note"].hidden === true && again.$.status.textContent === en.done, "early CoralFlower, backup unticked: installed, no note");
+  ok(again.$["backup-note"].hidden === true && again.$.status.textContent === en.done, "early Sornyak, backup unticked: installed, no note");
   const odd = await readyPage(new FakeFM1(image, { identity: "FM-1_931" }));
   await odd.$.go.fire("click");
   ok(odd.$.status.textContent === refusalText("an unknown Felucca-based firmware (FM-1_931)") && odd.$["force-box"].hidden === false && odd.$["backup-note"].hidden,
@@ -573,12 +573,12 @@ async function readyPage(dev, opts = {}) {
 
 // resume: the FM-1 is already in update mode
 {
-  const cf = backupSide("CoralFlower 0.2", CR_BACKUP_IDS);
+  const cf = backupSide("Sornyak 0.2", CR_BACKUP_IDS);
   const dev = new FakeFM1(image, { identity: "ota-FM-1_930", bk: (id) => (id === "FM-1_930" ? cf : null) });
   const p = await readyPage(dev);
   await p.$.go.fire("click");
   ok(p.$.status.textContent === en.done && dev.bad === 0 && dev.identity === "FM-1_930" && !p.confirms.length && !p.downloads.length &&
-     p.$["done-line"].textContent === "Done. Your FM-1 now runs CoralFlower 0.2.", "resume: update mode -> the write finished, FM-1_930, no question, the version read back");
+     p.$["done-line"].textContent === "Done. Your FM-1 now runs Sornyak 0.2.", "resume: update mode -> the write finished, FM-1_930, no question, the version read back");
 }
 // interrupted while writing: the guidance
 {
@@ -620,15 +620,15 @@ async function readyPage(dev, opts = {}) {
 // "What is on my FM-1?"
 {
   const ask = async (dev) => { const p = runPage({ navigator: midiOf(dev) }); await p.ready; await p.$["check-go"].fire("click"); return p.$.unit; };
-  let u = await ask(new FakeFM1(image, { identity: "FM-1_930", bk: () => backupSide("CoralFlower 0.1", CR_BACKUP_IDS) }));
-  ok(!u.hidden && u.textContent === en.cnCf.replace("{name}", "CoralFlower 0.1") && u.className === "unit", "check: CoralFlower -> its version, an update keeps what is saved");
+  let u = await ask(new FakeFM1(image, { identity: "FM-1_930", bk: () => backupSide("Sornyak 0.1", CR_BACKUP_IDS) }));
+  ok(!u.hidden && u.textContent === en.cnCf.replace("{name}", "Sornyak 0.1") && u.className === "unit", "check: Sornyak -> its version, an update keeps what is saved");
   u = await ask(new FakeFM1(image, { identity: "FM-1_920", bk: () => backupSide("ChoralRoot 0.21", CR_BACKUP_IDS) }));
-  ok(u.textContent === en.cnOther.replace("{name}", "ChoralRoot 0.21"), "check: ChoralRoot -> CoralFlower can be installed over it");
+  ok(u.textContent === en.cnOther.replace("{name}", "ChoralRoot 0.21"), "check: ChoralRoot -> Sornyak can be installed over it");
   u = await ask(new FakeFM1(image, { identity: "FM-1_900", bk: () => backupSide("FELUCCA SLOOP 2.2", BACKUP_IDS) }));
   ok(u.textContent === refusalText("Sloop") && u.className === "unit bad", "check: Sloop -> the refusal");
   u = await ask(new FakeFM1(image, { identity: "FM-1_930" }));
   ok(u.textContent === en.cnCf.replace("{name}", "CoralFlower (an early build without backup support)") && u.className === "unit",
-    "check: an early CoralFlower (no INFO) -> named as such, allowed");
+    "check: an early Sornyak (no INFO) -> named as such, allowed");
   u = await ask(new FakeFM1(image, { identity: "ota-FM-1_930" }));
   ok(u.textContent === en.cnLoader.replace("{identity}", "ota-FM-1_930"), "check: update mode -> finish the write with Install");
   u = await ask({ access: { inputs: new Map(), outputs: new Map() } });
@@ -644,12 +644,12 @@ async function readyPage(dev, opts = {}) {
     { version: "0.0", date: "2026-10-01" },                      // (no sha256: never offered)
   ] });
   const await_sha01 = await sha256(pkg01);
-  const site = (sha02, files = { "firmware/coralflower-0.2.fwsc": good, "firmware/coralflower-0.1.fwsc": pkg01 }) => async (url) => {
+  const site = (sha02, files = { "firmware/sornyak-0.2.fwsc": good, "firmware/sornyak-0.1.fwsc": pkg01 }) => async (url) => {
     if (url === "firmware/releases.json") return { ok: true, status: 200, json: async () => list(sha02) };
     const b = files[url];
     return b ? { ok: true, status: 200, arrayBuffer: async () => b.buffer.slice(b.byteOffset, b.byteOffset + b.length) } : notFound();
   };
-  const cf = backupSide("CoralFlower 0.1", CR_BACKUP_IDS, crData());
+  const cf = backupSide("Sornyak 0.1", CR_BACKUP_IDS, crData());
   const dev = new FakeFM1(image, { identity: "FM-1_930", bk: () => cf });
   let p = runPage({ navigator: midiOf(dev), fetch: site(await sha256(good)) });
   await p.ready;
@@ -657,18 +657,18 @@ async function readyPage(dev, opts = {}) {
   ok(!p.$.versions.hidden && p.$["rel-none"].hidden && !p.$["rel-some"].hidden && count(chips, 'class="chip"') === 2 && chips.includes('data-ver="0.2" aria-pressed="true"') &&
      chips.includes("Newest") && chips.includes('data-ver="0.1" aria-pressed="false"') && !chips.includes('data-ver="0.0"'),
      "releases: two chips (the entry without a SHA-256 left out), the newest chosen");
-  ok(p.$.pkg.textContent === en.pkgRelOk.replace("{version}", "0.2") && p.$.pkg.className === "pkg ok" && !p.$.go.disabled && p.$.go.textContent === "Install on your FM-1" && p.$.ver.textContent.startsWith("CoralFlower 0.2") &&
-     p.fetched.includes("firmware/coralflower-0.2.fwsc"), "releases: the newest fetched from firmware/, sha256 and package checked, Install CoralFlower 0.2");
-  ok(p.$.notes.innerHTML.includes("Coral growth follows the chord.") && p.$.notes.innerHTML.includes('href="firmware/coralflower-0.2.fwsc" download') &&
+  ok(p.$.pkg.textContent === en.pkgRelOk.replace("{version}", "0.2") && p.$.pkg.className === "pkg ok" && !p.$.go.disabled && p.$.go.textContent === "Install on your FM-1" && p.$.ver.textContent.startsWith("Sornyak 0.2") &&
+     p.fetched.includes("firmware/sornyak-0.2.fwsc"), "releases: the newest fetched from firmware/, sha256 and package checked, Install Sornyak 0.2");
+  ok(p.$.notes.innerHTML.includes("Coral growth follows the chord.") && p.$.notes.innerHTML.includes('href="firmware/sornyak-0.2.fwsc" download') &&
      p.$.notes.innerHTML.includes("2 November 2026"), "releases: the chosen version's notes, date and download link");
   await p.$.versions.fire("click", { target: { closest: () => ({ dataset: { ver: "0.1" }, disabled: false }) } });
-  ok(p.$.ver.textContent.startsWith("CoralFlower 0.1") && p.$.versions.innerHTML.includes('data-ver="0.1" aria-pressed="true"') && p.$.pkg.className === "pkg ok",
+  ok(p.$.ver.textContent.startsWith("Sornyak 0.1") && p.$.versions.innerHTML.includes('data-ver="0.1" aria-pressed="true"') && p.$.pkg.className === "pkg ok",
     "releases: an older chip chosen -> its own package, checked");
   await choose(p, "candidate.fwsc", good);
   ok(p.$.ver.textContent === "candidate.fwsc" && !p.$.versions.innerHTML.includes('aria-pressed="true"'), "releases: a file chosen instead -> no chip pressed, Install names the file");
   await p.$.versions.fire("click", { target: { closest: () => ({ dataset: { ver: "0.2" }, disabled: false }) } });
   await p.$.go.fire("click");
-  ok(dev.identity === "FM-1_930" && dev.bad === 0 && p.$.status.textContent === en.done && /install: CoralFlower 0\.2 \(coralflower-0\.2\.fwsc\)/.test(p.$.log.textContent),
+  ok(dev.identity === "FM-1_930" && dev.bad === 0 && p.$.status.textContent === en.done && /install: Sornyak 0\.2 \(sornyak-0\.2\.fwsc\)/.test(p.$.log.textContent),
     "releases: back to 0.2, installed from the site's package");
   p = runPage({ navigator: midiOf(new FakeFM1(image)), fetch: site("0".repeat(64)) });
   await p.ready;
@@ -686,13 +686,13 @@ async function readyPage(dev, opts = {}) {
   const list = { releases: [{ version: "0.2", sha256: "a".repeat(64), date: "2026-10-15" }] };
   const p = runPage({ navigator: {}, fetch: async (url) => (url === "firmware/releases.json" ? { ok: true, status: 200, json: async () => list } : notFound()) });
   await p.ready;
-  ok(p.fetched.join() === "firmware/releases.json" && p.$.ver.textContent.startsWith("CoralFlower 0.2") && p.$.go.disabled && p.$.status.textContent === en.nomidi,
+  ok(p.fetched.join() === "firmware/releases.json" && p.$.ver.textContent.startsWith("Sornyak 0.2") && p.$.go.disabled && p.$.status.textContent === en.nomidi,
     "no Web MIDI: the newest version named, its package not downloaded, Install off");
 }
 
 // Back up and Restore
 {
-  const cf = backupSide("CoralFlower 0.1", CR_BACKUP_IDS, crData());
+  const cf = backupSide("Sornyak 0.1", CR_BACKUP_IDS, crData());
   const dev = new FakeFM1(image, { identity: "FM-1_930", bk: () => cf });
   const p = runPage({ navigator: midiOf(dev) });
   await p.ready;
@@ -704,9 +704,9 @@ async function readyPage(dev, opts = {}) {
   await until(() => blobText);
   URL.createObjectURL = realCreate;
   const file = blobText && JSON.parse(blobText);
-  ok(p.downloads.length === 1 && /^coralflower-backup-/.test(p.downloads[0].name) && p.$["backup-status"].textContent.startsWith(en.backupSaved) && file && file.firmware === "CoralFlower 0.1" &&
-     file.objects.length === CR_BACKUP_IDS.length, "Back up: coralflower-backup-*.json with CoralFlower's objects");
-  const blank = backupSide("CoralFlower 0.1", CR_BACKUP_IDS);
+  ok(p.downloads.length === 1 && /^coralflower-backup-/.test(p.downloads[0].name) && p.$["backup-status"].textContent.startsWith(en.backupSaved) && file && file.firmware === "Sornyak 0.1" &&
+     file.objects.length === CR_BACKUP_IDS.length, "Back up: coralflower-backup-*.json with Sornyak's objects");
+  const blank = backupSide("Sornyak 0.1", CR_BACKUP_IDS);
   dev.bk = () => blank;
   p.$["restore-file"].files = [{ text: async () => "{\"format\":\"other\"}" }];
   await p.$["restore-file"].fire("change");
@@ -715,13 +715,13 @@ async function readyPage(dev, opts = {}) {
   await p.$["restore-file"].fire("change");
   await p.$["restore-go"].fire("click");
   ok(p.confirms.at(-1) === en.restoreConfirm && blank.log.at(-1) === 1 && crData().every(([id, v]) => blank.objs.get(id)?.every((b, i) => b === v[i])) &&
-     blank.restarts === 1 && p.$["backup-status"].textContent.startsWith(en.restored), "Restore: confirmed, every object back, the settings last, RESTART (CoralFlower restarts)");
+     blank.restarts === 1 && p.$["backup-status"].textContent.startsWith(en.restored), "Restore: confirmed, every object back, the settings last, RESTART (Sornyak restarts)");
 }
 {
   // a 0.6 backup onto 0.5: 0.5 refuses object 31 (0.6's rhythm machine record), the restore skips it and goes on, so
   // the patterns and song after it still go back (the owner's pick for 0.6)
   const ids = CF_BACKUP_IDS.filter((id) => id < 56);
-  const cf6 = backupSide("CoralFlower 0.6", ids, cfData());
+  const cf6 = backupSide("Sornyak 0.6", ids, cfData());
   const dev = new FakeFM1(image, { identity: "FM-1_930", bk: () => cf6 });
   const p = runPage({ navigator: midiOf(dev) });
   await p.ready;
@@ -731,20 +731,20 @@ async function readyPage(dev, opts = {}) {
   await p.$["backup-go"].fire("click");
   await until(() => blobText);
   URL.createObjectURL = realCreate;
-  const on05 = backupSide("CoralFlower 0.5", ids, [], [31]);
+  const on05 = backupSide("Sornyak 0.5", ids, [], [31]);
   dev.bk = () => on05;
   p.$["restore-file"].files = [{ text: async () => blobText }];
   await p.$["restore-file"].fire("change");
   await p.$["restore-go"].fire("click");
   await until(() => p.$["backup-status"].textContent.startsWith(en.restored));
   ok(!on05.objs.has(31) && [6, 30, 50, 51, 52, 53, 54, 55].every((id) => cfData().find(([i]) => i === id)[1].every((b, k) => b === on05.objs.get(id)?.[k])) &&
-     on05.restarts === 1 && p.$["backup-status"].textContent.endsWith("(not used by this firmware, kept in the file: CoralFlower loop)"),
+     on05.restarts === 1 && p.$["backup-status"].textContent.endsWith("(not used by this firmware, kept in the file: Sornyak loop)"),
      "a 0.6 backup on 0.5: 31 refused and skipped, the sound bank, settings, patterns and song restored, RESTART");
 }
 {
-  // CoralFlower 0.3.1: the sequencer's patterns and song in the file and back; on 0.3 (no such objects) kept in the file
+  // Sornyak 0.3.1: the sequencer's patterns and song in the file and back; on 0.3 (no such objects) kept in the file
   const CF031 = CF_BACKUP_IDS.filter((id) => id < 56);   // (0.3.1 lists neither 0.4.2's sound edits nor 0.5's pattern sounds)
-  const cf = backupSide("CoralFlower 0.3.1", CF031, cfData());
+  const cf = backupSide("Sornyak 0.3.1", CF031, cfData());
   const dev = new FakeFM1(image, { identity: "FM-1_930", bk: () => cf });
   const p = runPage({ navigator: midiOf(dev) });
   await p.ready;
@@ -757,21 +757,21 @@ async function readyPage(dev, opts = {}) {
   const file = blobText && JSON.parse(blobText);
   ok(file && file.objects.length === CF031.length && [50, 51, 52, 53, 54, 55].every((id) => file.objects.find((o) => o.id === id)?.size) &&
      readBackup(blobText).objects.length === CF031.length, "Back up on 0.3.1: the sequencer's six parts in the file (3840 B each at most: accepted)");
-  const blank = backupSide("CoralFlower 0.3.1", CF031);
+  const blank = backupSide("Sornyak 0.3.1", CF031);
   dev.bk = () => blank;
   p.$["restore-file"].files = [{ text: async () => blobText }];
   await p.$["restore-file"].fire("change");
   await p.$["restore-go"].fire("click");
   ok(cfData().every(([id, v]) => blank.objs.get(id)?.every((b, i) => b === v[i])) && blank.restarts === 1 &&
-     p.$["backup-status"].textContent.startsWith(en.restored) && p.$["backup-status"].textContent.endsWith("CoralFlower loop, CoralFlower patterns and song"),
+     p.$["backup-status"].textContent.startsWith(en.restored) && p.$["backup-status"].textContent.endsWith("Sornyak loop, Sornyak patterns and song"),
      "Restore on 0.3.1: the patterns and song back, named once");
-  const old = backupSide("CoralFlower 0.3", CF_BACKUP_IDS.filter((id) => id < 50));
+  const old = backupSide("Sornyak 0.3", CF_BACKUP_IDS.filter((id) => id < 50));
   dev.bk = () => old;
   await p.$["restore-go"].fire("click");
-  ok(!old.log.some((id) => id >= 50) && old.objs.get(30) && p.$["backup-status"].textContent.endsWith(en.restoreSkipped + "CoralFlower patterns and song)"),
+  ok(!old.log.some((id) => id >= 50) && old.objs.get(30) && p.$["backup-status"].textContent.endsWith(en.restoreSkipped + "Sornyak patterns and song)"),
      "Restore on 0.3: the rest restored, the patterns kept in the file and named once as not used");
-  ok(objectNames([50, 6, 51, 55]) === "CoralFlower patterns and song, user sounds 1-16", "objectNames: each name once, in order");
-  ok(objectNames([57, 30, 56, 58]) === "CoralFlower unsaved sound edits, CoralFlower settings", "objectNames: the three sounds' edits named once (0.4.2)");
+  ok(objectNames([50, 6, 51, 55]) === "Sornyak patterns and song, user sounds 1-16", "objectNames: each name once, in order");
+  ok(objectNames([57, 30, 56, 58]) === "Sornyak unsaved sound edits, Sornyak settings", "objectNames: the three sounds' edits named once (0.4.2)");
 }
 
 // the return to the official V15 (validateStockPackage stands in for the real file, which is not in the repo)
@@ -779,7 +779,7 @@ async function readyPage(dev, opts = {}) {
   const stockImage = Uint8Array.from({ length: 0x2000 }, (_, i) => (i * 7) & 0xFF);
   const prelude = "validateStockPackage = async (b) => ({ product: \"FM-1_015\", image: __stockImage, sha256: \"test\" });";
   const v15 = { size: STOCK_V15_SIZE, arrayBuffer: async () => new ArrayBuffer(STOCK_V15_SIZE) };
-  const cfSide = () => backupSide("CoralFlower 0.1", CR_BACKUP_IDS, crData());
+  const cfSide = () => backupSide("Sornyak 0.1", CR_BACKUP_IDS, crData());
   const run = async (answer) => {
     const dev = new FakeFM1(stockImage, { identity: "FM-1_930", final: "FM-1_015", loader: "ota-FM-1_015", bk: (id) => (id === "FM-1_930" ? cfSide() : null) });
     const p = runPage({ navigator: midiOf(dev), prelude, extra: { __stockImage: stockImage }, confirm: () => answer });

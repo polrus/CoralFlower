@@ -198,7 +198,7 @@ def model_of(text):
 
 
 # which firmware runs: may CoralFlower be installed over it? The same table as web/fm1ota.js classifyFirmware
-# (ChoralRoot's docs/INSTALL-COMPAT.md, plus CoralFlower itself: INFO "CoralFlower X.Y", an update). identity: the
+# (ChoralRoot's docs/INSTALL-COMPAT.md, plus Sornyak itself: INFO "Sornyak X.Y", an update). identity: the
 # handshake text; info: the backup protocol's INFO version, None when the firmware does not answer. The 9xx identities are shared by every Felucca-based firmware (Felucca 0.9-beta FM-1_909,
 # Felucca 1.0 FM-1_910, Sloop 2.0 FM-1_920 = ChoralRoot's), so they are told apart by the INFO text only.
 RECOVERY_URL = "https://github.com/Quixotic7/MvaveFM1Unbricker"
@@ -206,9 +206,9 @@ CF_EARLY = "CoralFlower (an early build without backup support)"
 # an early CoralFlower build answers no INFO (no backup protocol): the install skips the backup and says why. The update
 # writes only the app area [0x4000, 0x93000) and the staging area at 0xE0000; CoralFlower's saved data lives elsewhere
 # (storage.c: settings 0x9D000, its loop 0xB6000, the user sounds 0xDC000..), so the update does not erase it
-CF_NO_BACKUP = ("This CoralFlower build cannot make a backup, so the backup is skipped. The update does not erase your "
+CF_NO_BACKUP = ("This Sornyak build cannot make a backup, so the backup is skipped. The update does not erase your "
                 "sounds and settings: it writes only the firmware area of the flash.")
-REFUSE_REASON = "An install over it has left an FM-1 that no longer starts, and the data it leaves in the flash is not known to be safe for CoralFlower."
+REFUSE_REASON = "An install over it has left an FM-1 that no longer starts, and the data it leaves in the flash is not known to be safe for Sornyak."
 
 
 def classify_firmware(identity, info):
@@ -230,7 +230,7 @@ def classify_firmware(identity, info):
         return "refuse", "unknown", f"an unknown firmware ({identity})"
     if m[3] == "930" and not v:                       # CoralFlower's own identity, no INFO: an early CoralFlower build
         return "allow", "coralflower", CF_EARLY       # (any other 9xx without INFO stays refused below)
-    if re.match(r"coralflower\b", v, re.I):           # an update of CoralFlower
+    if re.match(r"(sornyak|coralflower)\b", v, re.I):           # an update of CoralFlower
         return "allow", "coralflower", v
     if re.match(r"choralroot\b", v, re.I):
         return "allow", "choralroot", v
@@ -251,7 +251,7 @@ def classify_firmware(identity, info):
 
 def refusal_text(name):
     return (f"Installing over {name} is not supported: {REFUSE_REASON} "
-            f"Return to the official V15 firmware with the installer you used for {name} first, then install CoralFlower. "
+            f"Return to the official V15 firmware with the installer you used for {name} first, then install Sornyak. "
             f'If an FM-1 is already dark (black screen, a "WL82 UBOOT1.00" USB disk): {RECOVERY_URL}')
 
 
@@ -1052,15 +1052,15 @@ def object_name(i):
     if 40 <= i <= 49:
         return f"loop slot {i - 39}"
     if i == 30:
-        return "CoralFlower settings"
+        return "Sornyak settings"
     if i == 31:
-        return "CoralFlower loop"
+        return "Sornyak loop"
     if i in CF_SEQ_IDS:
-        return "CoralFlower patterns and song"
+        return "Sornyak patterns and song"
     if i in CF_EDIT_IDS:
-        return "CoralFlower unsaved sound edits"
+        return "Sornyak unsaved sound edits"
     if i == CF_PSND_ID or i in CF_TWK_IDS:
-        return "CoralFlower pattern sounds"
+        return "Sornyak pattern sounds"
     return f"object {i}"
 
 
@@ -1069,9 +1069,9 @@ def object_names(ids):                                 # each name once (the seq
 
 
 def family(firmware):
-    """the backup family (web/fm1backup.js backupFamily): CoralFlower answers ChoralRoot's protocol and objects"""
+    """the backup family (web/fm1backup.js backupFamily): Sornyak answers ChoralRoot's protocol and objects"""
     f = (firmware or "").lower()
-    if f.startswith("coralflower"):
+    if f.startswith(("sornyak", "coralflower")):
         return "coralflower"
     return "choralroot" if f.startswith("choralroot") else "felucca" if f.startswith("felucca") else "other"
 
@@ -2489,8 +2489,8 @@ def run(a, backend, out, ask):
         print(f"{dev.id.text}  [{mode}]  port: {dev.name}" + (f"  version: {info[0]}" if info else ""), file=out)
         if not dev.id.loader:
             verdict, _kind, name = classify_firmware(dev.id.text, info and info[0])
-            print(f"CoralFlower can be installed over {name}" if verdict == "allow" else
-                  f"CoralFlower is not installed over {name} (ChoralRoot's docs/INSTALL-COMPAT.md)", file=out)
+            print(f"Sornyak can be installed over {name}" if verdict == "allow" else
+                  f"Sornyak is not installed over {name} (ChoralRoot's docs/INSTALL-COMPAT.md)", file=out)
         return 0
     if not a.package:                             # backup and / or restore only
         if a.backup:

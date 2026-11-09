@@ -72,7 +72,7 @@ static void draw_topbar(const char *left, const char *mid)
  * sounding root) */
 static uint8_t cf_panel(int what)
 {
-    return (uint8_t)((flo.species == FL_SP_CORAL ? FL_S0 : FL_L0) + what);
+    return (uint8_t)((flo.species == FL_SP_SORNYAK ? FL_S0 : FL_L0) + what);
 }
 
 /* ------------------------------------------------------------------ keys --- */

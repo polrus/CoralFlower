@@ -1,4 +1,4 @@
-/* CoralFlower palette: ten four-step ramps after the "TLP" 31-colour pixel palette, on black. (The background was a
+/* Sornyak palette (after CoralFlower's): ten four-step ramps after the "TLP" 31-colour pixel palette, on black. (The background was a
  * warm near-black, 0x110A02: in RGB565 it is (16, 8, 0), no blue at all, and the FM-1's panel showed it olive.)
  *
  * Every pixel the flora engine and the UI draw is an index into this table; the platform turns the
@@ -55,12 +55,12 @@ static const uint32_t fl_pal_rgb[FL_PAL_SIZE] = {
     0xE3F0EC, 0x82ABA2, 0x466A74, 0x2A354A,   /* SAGE */
 };
 
-/* the backdrop's dark tints, dark to light: dusk behind the plant, deep water behind the coral.
+/* the backdrop's dark tints, dark to light: dusk behind the plant, night behind the Sornyak.
  * Palette entries 56..63 (48..55 are the UI theme's accent and secondary ramps). */
 enum { FL_L0 = 56, FL_L1, FL_L2, FL_L3, FL_S0, FL_S1, FL_S2, FL_S3 };
 static const uint32_t fl_back_rgb[8] = {
     0x1A1026, 0x2C1838, 0x4E2440, 0x84402E,   /* dusk: violet -> plum -> wine -> the glow */
-    0x071420, 0x0B2232, 0x0F3346, 0x15495C,   /* water: deep -> the light from the surface */
+    0x080C2C, 0x121F5A, 0x243A92, 0x5660D2,   /* night (the Sornyak): deep blue -> the crown's violet light */
 };
 
 #endif

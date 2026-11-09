@@ -1717,7 +1717,7 @@ static void cf_feed_plant(uint32_t dt)
     const cf_chord_out_t *o = &cf_sn.out;
     uint32_t i, lvl = 0, src, ser;
     /* the Top algorithms grow a plant, the Side ones a coral coloured by the key */
-    flora_set_species(&flo, cs.chord.algo >= CF_ALG_SIDE ? FL_SP_CORAL : FL_SP_PLANT);
+    flora_set_species(&flo, cs.chord.algo >= CF_ALG_SIDE ? FL_SP_SORNYAK : FL_SP_PLANT);
     flora_set_key(&flo, cs.chord.tonic);
     flo.backdrop = cs.backdrop;
     /* what the flower shows: the keys' chord while they sound, else the sequencer's CHORDS track's while it plays,
@@ -1767,14 +1767,29 @@ static void cf_feed_plant(uint32_t dt)
         if (cf_sn.arp_on)
             flora_note_on(&flo, cf_sn.arp_note, cs.vel);
     }
-    for (i = 0; i < NVOICE; i++) {               /* loudness: the chord part's strongest voice */
-        int32_t e = trk[CF_PART_CHORD].v[i].active ? trk[CF_PART_CHORD].v[i].env_out : 0;
-        if (e < 0)
-            e = -e;
-        if ((uint32_t)e > lvl)
-            lvl = (uint32_t)e;
+    {                                            /* loudness: every part's strongest voice (the whole sound lights
+                                                  * the scenes) */
+        uint32_t p;
+        for (p = 0; p < NPART; p++)
+            for (i = 0; i < NVOICE; i++) {
+                int32_t e = trk[p].v[i].active ? trk[p].v[i].env_out : 0;
+                if (e < 0)
+                    e = -e;
+                if ((uint32_t)e > lvl)
+                    lvl = (uint32_t)e;
+            }
     }
     flora_set_level(&flo, (uint16_t)(lvl > 32767u ? 65535u : lvl * 2u));
+    {                                            /* a tier of the Sornyak, a ring of butterflies, a recorded track */
+        uint32_t cur = sq_cur_pat(), t, m = 0;
+        if (cur < SQ_NPAT && sq_has(cur))
+            for (t = 0; t < SQ_NTRK; t++)
+                if (sq_own(&sq_st.pat[cur], t))
+                    m |= 1u << t;
+        flora_set_tracks(&flo, m);
+        flora_set_reverb(&flo, (cs.fx.on >> CFX_REVERB) & 1u ?   /* (the reverb's mix counts double, its decay once) */
+                               (unsigned)cs.fx.v[CFX_REVERB][2] * 2u + cs.fx.v[CFX_REVERB][1] : 0u);
+    }
     flora_tick(&flo, dt);
 }
 

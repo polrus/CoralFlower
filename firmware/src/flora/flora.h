@@ -1,10 +1,11 @@
-/* flora: the living plant or coral at the centre of CoralFlower's screen.
+/* flora: the living plant or Sornyak at the centre of Sornyak's screen.
  *
  * One organism grows up from the bottom edge of its picture. Two species, chosen by the chord algorithm:
- *   - FL_SP_PLANT (the Top algorithms): a flowering plant. A leafy stem; the crown flower is the root, it has one
- *     petal per chord tone; every other chord tone is a flowering side shoot.
- *   - FL_SP_CORAL (the Side algorithms): a branching coral. A short foot; the crown branch is the root; every other
- *     chord tone is a branch that forks, with polyps on its tips.
+ *   - FL_SP_PLANT (the Top algorithms): the torch (moose.c), a small yellow moose on a hill at night with a torch,
+ *     rings of butterflies round it, one more for every recorded track. (The flowering plant below is CoralFlower's,
+ *     kept in the tree: no species grows it now.)
+ *   - FL_SP_SORNYAK (the Side algorithms): the Sornyak, a tall weed in tiers on a night meadow (sornyak.c). It grows a
+ *     tier for every recorded track of the pattern playing and shines when all four are; a small moose listens.
  * In both, a tone's compass direction is its pitch class (seen from above, the organism is the chord drawn on the
  * pitch-class clock), low notes branch low, and the tone's role decides the organ: 3rd = an open flower or a wide
  * fan, 5th = a leafy shoot or a sturdy fork, 7th = a nodding bell or an uneven fork, 9th = a spray of florets or open
@@ -32,7 +33,7 @@ enum {
     FL_Q_SINGLE    /* single notes (chord type Off / none) */
 };
 
-enum { FL_SP_PLANT = 0, FL_SP_CORAL = 1 };
+enum { FL_SP_PLANT = 0, FL_SP_SORNYAK = 1 };
 
 /* what is behind the organism:
  *   SCENE     the plant: a dusk sky, twinkling stars, a crescent moon, far hills; the coral: deep water with soft
@@ -106,6 +107,15 @@ typedef struct {
     uint8_t body_ramp;   /* the coral's colour, from the key */
     int16_t cx, cy;      /* canvas position of the base, px */
     uint16_t part_acc;
+    uint8_t tracks;      /* the Sornyak: the recorded tracks of the pattern playing (bits: Chords Bass Layer Drums) */
+    uint8_t sk_pz[12];   /* .. the note pulse each pitch class last sparked for */
+    int32_t sk_h;        /* .. its stem's height now, Q8 px */
+    int32_t sk_shine;    /* .. 0..65535: all four tracks recorded */
+    int32_t sk_flash;    /* .. a strong hit's flash of the sky, fading */
+    uint32_t sk_acc;     /* .. the fireflies' clock */
+    uint32_t tq_phase;   /* the torch scene: the butterfly rings' turn */
+    uint32_t tq_flap;    /* .. their wings' beat */
+    uint8_t reverb;      /* the reverb's amount 0..255 (0: off): the more, the more butterflies */
 } flora_t;
 
 void flora_init(flora_t *f, uint32_t seed, int cx, int cy);
@@ -114,6 +124,8 @@ void flora_set_key(flora_t *f, int tonic_pc);      /* the coral takes its colour
 void flora_set_chord(flora_t *f, const fl_chord_t *c);
 void flora_note_on(flora_t *f, uint8_t note, uint8_t vel);
 void flora_set_level(flora_t *f, uint16_t level); /* master loudness, 0..65535 */
+void flora_set_tracks(flora_t *f, unsigned mask); /* the recorded tracks (bit 0 Chords .. bit 3 Drums) */
+void flora_set_reverb(flora_t *f, unsigned amount); /* the reverb's amount, 0..255: the butterflies' number */
 void flora_tick(flora_t *f, uint32_t dt_ms);
 void flora_render(flora_t *f, flc_t *c);
 

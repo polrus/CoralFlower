@@ -197,8 +197,8 @@ int main(void)
     /* ---- INFO ---- */
     t_begin(1);
     a = t_send(&n);
-    CHECK(a && n > 12 && !memcmp(a, "CoralFlower", 11) && a[n - 6] == 0x42 && a[n - 4] == 3 && a[n - 3] == 0x43 &&
-          a[n - 1] == 2, "INFO: \"CoralFlower ...\", tags 42 01 03 and 43 01 02 (%s)", a ? (const char *)a : "none");
+    CHECK(a && n > 12 && !memcmp(a, "Sornyak", 7) && a[n - 6] == 0x42 && a[n - 4] == 3 && a[n - 3] == 0x43 &&
+          a[n - 1] == 2, "INFO: \"Sornyak ...\", tags 42 01 03 and 43 01 02 (%s)", a ? (const char *)a : "none");
     t_begin(2); t_b(0); t_b(0);
     CHECK(!t_send(&n), "an editor command (2) gets no reply");
 
