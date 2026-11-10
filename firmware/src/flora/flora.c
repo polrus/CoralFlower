@@ -610,6 +610,8 @@ void flora_note_on(flora_t *f, uint8_t note, uint8_t vel)
 }
 void flora_set_tracks(flora_t *f, unsigned mask) { f->tracks = (uint8_t)(mask & 15u); }
 void flora_set_reverb(flora_t *f, unsigned amount) { f->reverb = (uint8_t)(amount > 255u ? 255u : amount); }
+void flora_set_bpm(flora_t *f, unsigned bpm) { f->bpm = (uint16_t)(bpm > 999u ? 999u : bpm); }
+void flora_live_note(flora_t *f) { f->sk_live_t = f->t | 1u; }
 
 void flora_set_level(flora_t *f, uint16_t level) { f->level_in = level; }
 

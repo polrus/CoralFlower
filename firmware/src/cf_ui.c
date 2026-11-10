@@ -1758,6 +1758,8 @@ static void cf_feed_plant(uint32_t dt)
     }
     if (cf_sn.onset != cu_last_onset) {
         cu_last_onset = cf_sn.onset;
+        if (sq_home_live())                      /* (live over a pattern: the Sornyak's butterflies come) */
+            flora_live_note(&flo);
         if (!cf_sn.arp_on)                       /* (the arpeggiator: a pulse a note, below) */
             for (i = 0; i < cf_sn.n; i++)
                 flora_note_on(&flo, cf_sn.note[i], cs.vel);
@@ -1766,6 +1768,8 @@ static void cf_feed_plant(uint32_t dt)
         cu_last_arp = cf_sn.arp_steps;
         if (cf_sn.arp_on)
             flora_note_on(&flo, cf_sn.arp_note, cs.vel);
+        if (cf_sn.arp_on && sq_home_live())
+            flora_live_note(&flo);
     }
     {                                            /* loudness: every part's strongest voice (the whole sound lights
                                                   * the scenes) */
@@ -1787,6 +1791,7 @@ static void cf_feed_plant(uint32_t dt)
                 if (sq_own(&sq_st.pat[cur], t))
                     m |= 1u << t;
         flora_set_tracks(&flo, m);
+        flora_set_bpm(&flo, cs.bpm);
         flora_set_reverb(&flo, (cs.fx.on >> CFX_REVERB) & 1u ?   /* (the reverb's mix counts double, its decay once) */
                                (unsigned)cs.fx.v[CFX_REVERB][2] * 2u + cs.fx.v[CFX_REVERB][1] : 0u);
     }

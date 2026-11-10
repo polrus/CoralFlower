@@ -12,7 +12,7 @@ Sornyak is inspired by the Telepathic Instruments Orchid. Its controls are redes
 buttons, because every instrument is played differently.
 
 <p align="center"><img src="docs/images/grow.gif" width="480" alt="A small yellow moose on a night hill shines a torch into the sky while rings of butterflies circle it, one more ring for each track recorded"></p>
-<p align="center"><img src="docs/images/sornyak.gif" width="480" alt="The Sornyak growing a tier for each track recorded, its light breathing with the music, until it shines with all four"></p>
+<p align="center"><img src="docs/images/sornyak.gif" width="480" alt="The Sornyak growing a tier for each of three tracks and shining with the fourth; butterflies circle its top while someone plays live"></p>
 
 Sornyak has no published release or installer site yet. Until it does, build it yourself (below); the browser
 version and the installer of [CoralFlower's site](https://ficusficusov.github.io/CoralFlower/) run CoralFlower, not
@@ -42,11 +42,12 @@ Sornyak.
   stars; the beam swings slowly and moths drift up it. Butterflies circle the moose: one ring, and one more for each
   track of the playing pattern that has something recorded. They flap and circle faster when the music is loud,
   and every note makes some of them flash.
-- **The Sornyak** (the Side layout). A pale weed in tiers grows on a night meadow: one tier for each track of the
-  playing pattern that has something recorded (Chords, Bass, Layer, Drums). Its light follows the sound: the rays and
-  the halo breathe with the loudness, a strong chord flashes the sky, and every note lights a bud. With all four
-  tracks recorded, the crown shines over the whole sky. A small round yellow moose with headphones sits in the grass
-  and listens.
+- **The Sornyak** (the Side layout). A pale weed in tiers grows on a night meadow: one tier for each of the first
+  three tracks of the playing pattern that have something recorded, and with the fourth the crown shines over the
+  whole sky. Its light follows the sound: the rays and the halo breathe with the loudness, a strong chord flashes
+  the sky, and every note lights a bud. When you play live over the pattern (the fifth instrument), butterflies come
+  and circle the top of the Sornyak at the song's tempo; the reverb scatters them. A small round yellow moose with
+  headphones sits in the grass and listens.
 - **Live over a pattern.** While a pattern plays, HOME's keys and PRESETS play a sound of their own on the Layer, so
   the pattern's chords keep theirs; REC there records you into the pattern's Layer track.
 - **MIDI over USB.** The chords, the bass and the sequencer's Layer and Drums go out on four channels you set. The

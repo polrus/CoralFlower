@@ -115,7 +115,11 @@ typedef struct {
     uint32_t sk_acc;     /* .. the fireflies' clock */
     uint32_t tq_phase;   /* the torch scene: the butterfly rings' turn */
     uint32_t tq_flap;    /* .. their wings' beat */
-    uint8_t reverb;      /* the reverb's amount 0..255 (0: off): the more, the more butterflies */
+    uint8_t reverb;      /* the reverb's amount 0..255 (0: off): the Sornyak's butterflies scatter with it */
+    uint16_t bpm;        /* the tempo (0: 100): the Sornyak's butterflies circle at its pace */
+    uint32_t sk_bph;     /* .. their turn, at the tempo */
+    int32_t sk_live;     /* .. 0..65535: someone is playing live over the pattern (they come, one by one) */
+    uint32_t sk_live_t;  /* .. when a live note last came (0: never) */
 } flora_t;
 
 void flora_init(flora_t *f, uint32_t seed, int cx, int cy);
@@ -125,7 +129,9 @@ void flora_set_chord(flora_t *f, const fl_chord_t *c);
 void flora_note_on(flora_t *f, uint8_t note, uint8_t vel);
 void flora_set_level(flora_t *f, uint16_t level); /* master loudness, 0..65535 */
 void flora_set_tracks(flora_t *f, unsigned mask); /* the recorded tracks (bit 0 Chords .. bit 3 Drums) */
-void flora_set_reverb(flora_t *f, unsigned amount); /* the reverb's amount, 0..255: the butterflies' number */
+void flora_set_reverb(flora_t *f, unsigned amount); /* the reverb's amount, 0..255: the butterflies' scatter */
+void flora_set_bpm(flora_t *f, unsigned bpm);       /* the tempo: the butterflies' pace (100: their own) */
+void flora_live_note(flora_t *f);                    /* a note played live over a pattern: the butterflies come */
 void flora_tick(flora_t *f, uint32_t dt_ms);
 void flora_render(flora_t *f, flc_t *c);
 

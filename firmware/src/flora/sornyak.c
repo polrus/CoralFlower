@@ -3,16 +3,16 @@
 /* The Sornyak (FL_SP_SORNYAK, the Side algorithms): a tall weed on a night meadow, included by flora.c.
  *
  * A pale stem in tiers, a shelf cap at every tier with glowing buds on it, a spotted ball for a crown. It grows a
- * tier for every track of the pattern playing that has something in it (flora_set_tracks: Chords, Bass, Layer,
- * Drums); with all four the crown shines: a white core, a wide halo and light rays over the whole sky. The light
+ * tier for each of the first three tracks of the pattern playing that have something in them (flora_set_tracks:
+ * Chords, Bass, Layer, Drums); the fourth makes the crown shine: a white core, a wide halo and light rays over the whole sky. The light
  * follows the sound: the rays and the halo breathe with the loudness, a strong hit flashes the sky, every note lights
  * a bud and sends a spark up. A small round yellow moose with headphones sits in the grass and listens: it bobs to
  * the beat, sings when it is loud, and raises its arms when the Sornyak shines.
  * Drawn straight onto the canvas (not from flora's segments): integer maths, no allocation. */
 
-#define SK_TIER 9
+#define SK_TIER 10                               /* px between two caps */
 static int abs_i(int v) { return v < 0 ? -v : v; }
-static void sk_swarm(flora_t *f, flc_t *c, int front);   /* (moose.c: the butterfly loops round the crown) */                                /* px between two caps */
+static void sk_swarm(flora_t *f, flc_t *c);       /* (moose.c: the butterflies circling the top) */
 static const uint8_t SK_SKY[5] = {FL_S0, FL_S1, FL_S2, FL_S3, FL_C(FL_R_SAGE, 0)};
 
 static int sk_popcount(unsigned m)
@@ -56,9 +56,12 @@ static void sk_cap_at(const flora_t *f, int k, int *x, int *y)   /* cap k, 1 = t
 /* ---- life ---------------------------------------------------------------------------------------------------- */
 static void sk_tick(flora_t *f, uint32_t dt)
 {
-    int n = sk_popcount(f->tracks), target = 14 + n * SK_TIER, pc, cx, cy;
+    int n = sk_popcount(f->tracks), target = 12 + (n > 3 ? 3 : n) * SK_TIER, pc, cx, cy;   /* (three tiers at most) */
+    int live = f->sk_live_t && f->t - f->sk_live_t < 5000u;   /* (a live note in the last five seconds) */
     f->sk_h = fl_approach(f->sk_h, target << 8, dt, 900);
-    f->sk_shine = fl_approach(f->sk_shine, n >= 4 ? 65535 : 0, dt, 1200);
+    f->sk_shine = fl_approach(f->sk_shine, n >= 4 ? 65535 : 0, dt, 1200);   /* (the fourth track: the shine) */
+    f->sk_live = fl_approach(f->sk_live, live ? 65535 : 0, dt, live ? 1500 : 2500);
+    f->sk_bph = (f->sk_bph + dt * (f->bpm ? f->bpm : 100u)) % (580u * 1024u);   /* (a turn in six seconds at 100) */
     f->sk_flash = f->sk_flash > (int32_t)dt * 3 ? f->sk_flash - (int32_t)dt * 3 : 0;
     sk_crown(f, &cx, &cy);
     for (pc = 0; pc < 12; pc++) {                /* a note: a spark up from its bud */
@@ -299,7 +302,6 @@ static void sk_render(flora_t *f, flc_t *c)
     for (i = 0; i < FL_MAX_PART; i++)            /* far fireflies */
         if (f->part[i].life && (i & 1))
             fl_draw_part(f, c, i);
-    sk_swarm(f, c, 0);                           /* (the loops' far halves, behind it) */
     sk_stem(f, c);
     sk_caps(f, c);
     sk_crown_draw(f, c);
@@ -308,5 +310,5 @@ static void sk_render(flora_t *f, flc_t *c)
     for (i = 0; i < FL_MAX_PART; i++)            /* near ones */
         if (f->part[i].life && !(i & 1))
             fl_draw_part(f, c, i);
-    sk_swarm(f, c, 1);                           /* (their near halves, over everything) */
+    sk_swarm(f, c);                              /* (the butterflies, over everything) */
 }
