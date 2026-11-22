@@ -40,6 +40,7 @@ and one orientation rule per plant. This is a design reference only: no PlantStu
 | What | Licence | Where |
 | --- | --- | --- |
 | Departure Mono font by Helena Zhang (<https://departuremono.com>): the screens' pixel font (rasterised at build time by `tools/gen_pixfont.py`) and the web pages' font | SIL OFL 1.1 | `assets/fonts/DepartureMono-Regular.otf`, `LICENSES/OFL-DepartureMono.txt` |
+| Pixelify Sans font by Stefie Justprince (<https://github.com/eifetx/Pixelify-Sans>): the intro's title (rasterised at build time by `tools/gen_title.py`) | SIL OFL 1.1 | `assets/fonts/PixelifySans[wght].ttf`, `LICENSES/OFL-PixelifySans.txt` |
 
 ## JieLi SDK files in the packages (Apache-2.0)
 

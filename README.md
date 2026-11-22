@@ -42,9 +42,10 @@ Sornyak.
   stars; the beam swings slowly and moths drift up it. Butterflies circle the moose: one ring, and one more for each
   track of the playing pattern that has something recorded. They flap and circle faster when the music is loud,
   and every note makes some of them flash.
-- **The Sornyak** (the Side layout). A pale weed in tiers grows on a night meadow: one tier for each of the first
-  three tracks of the playing pattern that have something recorded, and with the fourth the crown shines over the
-  whole sky. Its light follows the sound: the rays and the halo breathe with the loudness, a strong chord flashes
+- **The Sornyak** (the Side layout). A pale weed in tiers grows on a night meadow while the music plays: one tier for
+  each of the first three tracks of the playing pattern that have something recorded, and with the fourth the crown
+  shines over the whole sky. When it falls quiet, it shrinks back to a small sprout. On the beat it sways, dips and
+  stretches with the loudness, and its crown and caps turn round once a bar. Its light follows the sound: the rays and the halo breathe with the loudness, a strong chord flashes
   the sky, and every note lights a bud. When you play live over the pattern (the fifth instrument), butterflies come
   and circle the top of the Sornyak at the song's tempo; the reverb scatters them. A small round yellow moose with
   headphones sits in the grass and listens.
@@ -104,7 +105,8 @@ Sornyak is a fork of [CoralFlower](https://github.com/FicusFicusov/CoralFlower) 
 [ChoralRoot FM-1](https://github.com/Quixotic7/ChoralRootFM1) by Quixotic7, itself
 a fork of [Felucca](https://github.com/hugelton/Felucca) by Leo Kuroshita (Hügelton Instruments). The FM engine comes
 from [Melodee](https://github.com/keremimo/melodee) by Kerem Kilic, and the screens use
-[Departure Mono](https://departuremono.com), a font by Helena Zhang. Thank you all.
+[Departure Mono](https://departuremono.com), a font by Helena Zhang; the title is set in
+[Pixelify Sans](https://github.com/eifetx/Pixelify-Sans) by Stefie Justprince. Thank you all.
 
 Sornyak is free software under the GPL-3.0. `LICENSE` and `LICENSING.md` have the details.
 

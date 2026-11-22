@@ -114,6 +114,7 @@ def generate():
     tools = SRC / "tools"
     cmds = [[tools / "gen_aa_font.py", GEN / "ui_fonts.h", "--preset", "inter-tight"],
             [tools / "gen_pixfont.py", GEN / "cf_fonts.h"],                            # CoralFlower's pixel type
+            [tools / "gen_title.py", GEN / "cf_title.h"],                              # the intro's title
             [tools / "gen_aa_icons.py", GEN / "ui_icons.h"],
             [tools / "gen_aa_keycaps.py", GEN / "ui_keycaps.h"],
             [tools / "gen_ui_palettes.py", GEN / "ui_palettes.h"],
