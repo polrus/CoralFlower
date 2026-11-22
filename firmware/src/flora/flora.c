@@ -14,6 +14,7 @@ enum { P_MOTE = 0, P_BUBBLE, P_PETAL, P_BIG_BUBBLE };        /* particles */
 #define IS_CORAL(s) (((s)->key & KEY_CORAL) != 0)
 static void sk_tick(flora_t *f, uint32_t dt);    /* (sornyak.c, included below) */
 static void tq_tick(flora_t *f, uint32_t dt);    /* (moose.c, included below) */
+static void fl_music_tick(flora_t *f, uint32_t dt);   /* (sornyak.c: awake, the beat; both scenes) */
 
 /* ---- integer helpers ---------------------------------------------------------------------------------------- */
 
@@ -612,6 +613,15 @@ void flora_set_tracks(flora_t *f, unsigned mask) { f->tracks = (uint8_t)(mask & 
 void flora_set_reverb(flora_t *f, unsigned amount) { f->reverb = (uint8_t)(amount > 255u ? 255u : amount); }
 void flora_set_bpm(flora_t *f, unsigned bpm) { f->bpm = (uint16_t)(bpm > 999u ? 999u : bpm); }
 void flora_live_note(flora_t *f) { f->sk_live_t = f->t | 1u; }
+void flora_set_playing(flora_t *f, int on) { f->playing = (uint8_t)!!on; }
+void flora_set_beat(flora_t *f, unsigned pos, unsigned beats)
+{
+    f->sk_sync = beats ? 1u : 0u;
+    if (beats) {
+        f->sk_bpb = (uint8_t)(beats > 16u ? 16u : beats);
+        f->sk_pos = pos % ((uint32_t)f->sk_bpb * 1024u);
+    }
+}
 
 void flora_set_level(flora_t *f, uint16_t level) { f->level_in = level; }
 
@@ -781,6 +791,7 @@ void flora_tick(flora_t *f, uint32_t dt)
         if (p->y < -(4 << 8))
             p->life = 0;
     }
+    fl_music_tick(f, dt);
     if (f->species == FL_SP_SORNYAK)
         sk_tick(f, dt);
     tq_tick(f, dt);                              /* (the butterflies' clocks: both scenes have them) */

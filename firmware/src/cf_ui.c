@@ -1791,7 +1791,10 @@ static void cf_feed_plant(uint32_t dt)
                 if (sq_own(&sq_st.pat[cur], t))
                     m |= 1u << t;
         flora_set_tracks(&flo, m);
-        flora_set_bpm(&flo, cs.bpm);
+        flora_set_bpm(&flo, cf_sn.ext_clock && cf_sn.ext_bpm ? cf_sn.ext_bpm : cs.bpm);
+        /* the Sornyak grows while something sounds or a pattern plays, and moves on the pattern's beat */
+        flora_set_playing(&flo, cf_sn.sq_on || lvl > 512u);
+        flora_set_beat(&flo, cf_sn.sq_on ? cf_sn.sq_t * 1024u / SQ_PPQN : 0u, cf_sn.sq_on ? cf_sn.sq_bt / SQ_PPQN : 0u);
         flora_set_reverb(&flo, (cs.fx.on >> CFX_REVERB) & 1u ?   /* (the reverb's mix counts double, its decay once) */
                                (unsigned)cs.fx.v[CFX_REVERB][2] * 2u + cs.fx.v[CFX_REVERB][1] : 0u);
     }

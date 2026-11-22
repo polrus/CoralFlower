@@ -117,9 +117,15 @@ typedef struct {
     uint32_t tq_flap;    /* .. their wings' beat */
     uint8_t reverb;      /* the reverb's amount 0..255 (0: off): the Sornyak's butterflies scatter with it */
     uint16_t bpm;        /* the tempo (0: 100): the Sornyak's butterflies circle at its pace */
-    uint32_t sk_bph;     /* .. their turn, at the tempo */
     int32_t sk_live;     /* .. 0..65535: someone is playing live over the pattern (they come, one by one) */
     uint32_t sk_live_t;  /* .. when a live note last came (0: never) */
+    uint8_t playing;     /* something sounds or the sequencer plays (flora_set_playing) */
+    uint8_t sk_bpb;      /* .. beats in the bar (flora_set_beat; 0: 4) */
+    uint8_t sk_sync;     /* .. 1: sk_pos comes from the sequencer, 0: it runs on at the tempo */
+    uint32_t sk_heard_t; /* .. when something last sounded */
+    int32_t sk_awake;    /* .. 0..65535: the music is on (it grows), off (a sprout) */
+    uint32_t sk_pos;     /* .. where in the bar, 1024 a beat */
+    uint32_t sk_rot;     /* .. the crown's and the caps' turn, 1024 a turn (a bar, while it plays) */
 } flora_t;
 
 void flora_init(flora_t *f, uint32_t seed, int cx, int cy);
@@ -132,6 +138,9 @@ void flora_set_tracks(flora_t *f, unsigned mask); /* the recorded tracks (bit 0 
 void flora_set_reverb(flora_t *f, unsigned amount); /* the reverb's amount, 0..255: the butterflies' scatter */
 void flora_set_bpm(flora_t *f, unsigned bpm);       /* the tempo: the butterflies' pace (100: their own) */
 void flora_live_note(flora_t *f);                    /* a note played live over a pattern: the butterflies come */
+void flora_set_playing(flora_t *f, int on);         /* something sounds: the Sornyak grows; silent: a sprout */
+void flora_set_beat(flora_t *f, unsigned pos, unsigned beats);   /* the sequencer's place in the bar (1024 a beat)
+                                                      * and its beats; beats 0: none, it keeps time at the tempo */
 void flora_tick(flora_t *f, uint32_t dt_ms);
 void flora_render(flora_t *f, flc_t *c);
 

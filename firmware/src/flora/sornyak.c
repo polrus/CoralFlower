@@ -4,7 +4,7 @@
  *
  * A pale stem in tiers, a shelf cap at every tier with glowing buds on it, a spotted ball for a crown. It grows a
  * tier for each of the first three tracks of the pattern playing that have something in them (flora_set_tracks:
- * Chords, Bass, Layer, Drums); the fourth makes the crown shine: a white core, a wide halo and light rays over the whole sky. The light
+ * Chords, Bass, Layer, Drums) while the music plays, and is a small sprout again when it falls quiet; the fourth makes the crown shine: a white core, a wide halo and light rays over the whole sky. The light
  * follows the sound: the rays and the halo breathe with the loudness, a strong hit flashes the sky, every note lights
  * a bud and sends a spark up. A small round yellow moose with headphones sits in the grass and listens: it bobs to
  * the beat, sings when it is loud, and raises its arms when the Sornyak shines.
@@ -12,7 +12,7 @@
 
 #define SK_TIER 10                               /* px between two caps */
 static int abs_i(int v) { return v < 0 ? -v : v; }
-static void sk_swarm(flora_t *f, flc_t *c);       /* (moose.c: the butterflies circling the top) */
+static void sk_swarm(flora_t *f, flc_t *c, int pass);   /* (moose.c: the butterflies round the top) */
 static const uint8_t SK_SKY[5] = {FL_S0, FL_S1, FL_S2, FL_S3, FL_C(FL_R_SAGE, 0)};
 
 static int sk_popcount(unsigned m)
@@ -25,43 +25,86 @@ static int sk_popcount(unsigned m)
 static int sk_w(const flora_t *f) { return f->cx * 2; }          /* the canvas, from where the base was put */
 static int sk_ground(const flora_t *f) { return f->cy - 9; }
 static int sk_bx(const flora_t *f) { return sk_w(f) * 5 / 8; }
-static int sk_height(const flora_t *f) { return f->sk_h >> 8; }   /* the stem now, px */
 static int sk_lvl(const flora_t *f) { return (int)(f->level >> 8); }   /* 0..255 */
 static int sk_shine(const flora_t *f) { return (int)(f->sk_shine >> 8); }
+static int sk_aw(const flora_t *f) { return (int)(f->sk_awake >> 8); }  /* 0..255: the music is on */
+static int sk_base_h(const flora_t *f) { return f->sk_h >> 8; }   /* the stem's grown height, px: its tiers */
+/* on each beat it dips (a squash of a pixel or two, more when loud) */
+static int sk_bob(const flora_t *f)
+{
+    int fr = (int)(f->sk_pos & 1023u);
+    if (sk_aw(f) < 128 || fr >= 180)
+        return 0;
+    return fr < 90 ? 1 + (sk_lvl(f) > 110) : 1;
+}
+/* the stem now, px: its grown height, stretched by the loudness, dipping on the beat */
+static int sk_height(const flora_t *f)
+{
+    int h = sk_base_h(f) + sk_lvl(f) * 6 * sk_aw(f) / (255 * 255) - sk_bob(f);
+    return h > 4 ? h : 4;
+}
+static int sk_turn(const flora_t *f) { return (int)((f->sk_rot >> 8) & 1023u); }   /* the crown's and caps' turn */
 
 /* the stem's centre at height h over the ground: it leans left as it rises and sways with the sound */
 static int sk_x(const flora_t *f, int h)
 {
     int hs = sk_height(f) > 8 ? sk_height(f) : 8;
     int32_t q = (int32_t)h * h * 256 / (hs * hs);                 /* 0..256 up the stem */
-    int32_t amp = 256 + sk_lvl(f) * 3;
-    int32_t sway = (fl_fsin((int32_t)(f->t >> 3)) * amp >> 14) * q >> 8;
+    int aw = sk_aw(f);
+    /* silent: a slow breeze; playing: it leans right on one beat and left on the next, wider when loud */
+    int32_t idle = (fl_fsin((int32_t)(f->t >> 3)) * 256 >> 14) * (255 - aw) / 255;
+    int32_t beat = (fl_fcos((int32_t)(f->sk_pos / 2u)) * (320 + sk_lvl(f) * 3) >> 14) * aw / 255;
+    int32_t sway = (idle + beat) * q >> 8;
     return sk_bx(f) - (int)(q * 6 >> 8) + (int)(sway >> 8);
 }
-static int sk_crown_r(const flora_t *f) { return 3 + sk_popcount(f->tracks) / 2 + (sk_shine(f) > 160); }
+static int sk_crown_r(const flora_t *f)        /* a bud on the sprout, a ball when it plays */
+{
+    int aw = sk_aw(f);
+    return 2 + (aw > 96) + (aw > 160 ? sk_popcount(f->tracks) / 2 : 0) + (sk_shine(f) > 160);
+}
 static void sk_crown(const flora_t *f, int *x, int *y)
 {
     int h = sk_height(f);
     *x = sk_x(f, h);
     *y = sk_ground(f) - h - sk_crown_r(f);
 }
-static int sk_ncaps(const flora_t *f) { return (sk_height(f) - 4) / SK_TIER; }
-static void sk_cap_at(const flora_t *f, int k, int *x, int *y)   /* cap k, 1 = the lowest */
+static int sk_ncaps(const flora_t *f) { return (sk_base_h(f) - 4) / SK_TIER; }
+static void sk_cap_at(const flora_t *f, int k, int *x, int *y)   /* cap k, 1 = the lowest (they ride the stretch) */
 {
-    int h = k * SK_TIER;
+    int hb = sk_base_h(f) > 1 ? sk_base_h(f) : 1, h = k * SK_TIER * sk_height(f) / hb;
     *x = sk_x(f, h) + ((k & 1) ? 2 : -2);
     *y = sk_ground(f) - h;
 }
 
 /* ---- life ---------------------------------------------------------------------------------------------------- */
+static int sk_heard(const flora_t *f)           /* something sounds, or did a moment ago */
+{
+    return f->playing || (f->sk_heard_t && f->t - f->sk_heard_t < 900u);   /* (t | 1 may be 1 ms ahead of t) */
+}
+/* the music, for both scenes: awake while something sounds (a short gap between notes keeps it), and the beat: the
+ * sequencer's place in the bar, else it keeps time at the tempo itself */
+static void fl_music_tick(flora_t *f, uint32_t dt)
+{
+    uint32_t bpm = f->bpm ? f->bpm : 100u, bpb = f->sk_bpb ? f->sk_bpb : 4u;
+    if (f->playing)
+        f->sk_heard_t = f->t | 1u;
+    f->sk_awake = fl_approach(f->sk_awake, sk_heard(f) ? 65535 : 0, dt, sk_heard(f) ? 500 : 1800);
+    if (!f->sk_sync)
+        f->sk_pos = (f->sk_pos + dt * bpm * 1024u / 60000u) % (bpb * 1024u);
+}
 static void sk_tick(flora_t *f, uint32_t dt)
 {
-    int n = sk_popcount(f->tracks), target = 12 + (n > 3 ? 3 : n) * SK_TIER, pc, cx, cy;   /* (three tiers at most) */
+    int n = sk_popcount(f->tracks), pc, cx, cy, heard = sk_heard(f), target;
     int live = f->sk_live_t && f->t - f->sk_live_t < 5000u;   /* (a live note in the last five seconds) */
-    f->sk_h = fl_approach(f->sk_h, target << 8, dt, 900);
-    f->sk_shine = fl_approach(f->sk_shine, n >= 4 ? 65535 : 0, dt, 1200);   /* (the fourth track: the shine) */
+    uint32_t bpm = f->bpm ? f->bpm : 100u, bpb = f->sk_bpb ? f->sk_bpb : 4u;
+    /* a sprout of 7 px; awake, a stem of 12 and a tier for each recorded track (three at most) */
+    target = 7 + (5 + (n > 3 ? 3 : n) * SK_TIER) * sk_aw(f) / 255;
+    f->sk_h = fl_approach(f->sk_h, target << 8, dt, 700);
+    target = n >= 4 && heard ? 65535 : 0;        /* (the fourth track: the shine, out soon after the music) */
+    f->sk_shine = fl_approach(f->sk_shine, target, dt, target ? 1200 : 500);
+    /* the turn: a bar a turn at full, easing out as it falls quiet ((dt bpm aw) x 2^18 / (60000 x 255 x bpb)) */
+    f->sk_rot += dt * bpm * (uint32_t)sk_aw(f) * 4u / (233u * bpb);
     f->sk_live = fl_approach(f->sk_live, live ? 65535 : 0, dt, live ? 1500 : 2500);
-    f->sk_bph = (f->sk_bph + dt * (f->bpm ? f->bpm : 100u)) % (580u * 1024u);   /* (a turn in six seconds at 100) */
     f->sk_flash = f->sk_flash > (int32_t)dt * 3 ? f->sk_flash - (int32_t)dt * 3 : 0;
     sk_crown(f, &cx, &cy);
     for (pc = 0; pc < 12; pc++) {                /* a note: a spark up from its bud */
@@ -107,7 +150,8 @@ static void sk_sky(flora_t *f, flc_t *c, int rays)
     int W = c->w, H = c->h, x, y, cx, cy, lvl = sk_lvl(f), sh = sk_shine(f);
     /* the rays: hard-edged wedges a step brighter (two near the crown), as long as the light is strong */
     int32_t rot = (int32_t)(f->t / 70u), power = lvl / 3 + sh, reach = 20 + power / 2 + sh / 3;
-    int32_t rg = 5 + lvl / 40 + sh / 16, rg2 = rg * rg, glow = 160 + sh + lvl / 2, flash = f->sk_flash >> 1;
+    int32_t rg = 2 + sk_aw(f) * 3 / 255 + lvl / 40 + sh / 16, rg2 = rg * rg,
+            glow = 60 + sk_aw(f) * 100 / 255 + sh + lvl / 2, flash = f->sk_flash >> 1;
     sk_crown(f, &cx, &cy);
     for (y = 0; y < H; y++)
         for (x = 0; x < W; x++) {
@@ -190,10 +234,12 @@ static void sk_stem(flora_t *f, flc_t *c)
 
 static void sk_caps(flora_t *f, flc_t *c)
 {
-    int k, n = sk_ncaps(f), hs = sk_height(f);
+    int k, n = sk_ncaps(f), hs = sk_base_h(f), aw = sk_aw(f);
     for (k = 1; k <= n; k++) {
         int x0, y0, dx, j, grown = fl_clampi((hs - k * SK_TIER - 4) * 256 / 8, 0, 256);
         int a = (12 - k) * grown / 256;          /* the lower caps wider; a new one opens */
+        int32_t ph = sk_turn(f) + k * 300;       /* its turn (each cap a little behind the one below) */
+        a -= (int)((abs_i(fl_fsin(ph * 2)) * a >> 14) * aw / (5 * 255));   /* (turning, it narrows and widens) */
         if (a < 2)
             continue;
         sk_cap_at(f, k, &x0, &y0);
@@ -206,10 +252,13 @@ static void sk_caps(flora_t *f, flc_t *c)
         }
         fl_put(c, x0 - a, y0 + 1, FL_C(FL_R_SAGE, 1));   /* (the rims droop) */
         fl_put(c, x0 + a, y0 + 1, FL_C(FL_R_SAGE, 2));
-        for (j = 0; j < 3; j++) {                /* three buds on its top */
-            int pc = (k * 3 + j) * 7 % 12, bx = x0 - a + 1 + j * (a - 1), ax = abs_i(bx - x0);
+        for (j = 0; j < 3; j++) {                /* three buds round its top, carried round as it turns */
+            int32_t ba = ph + j * 341;
+            int pc = (k * 3 + j) * 7 % 12, bx = x0 + (int)(fl_fsin(ba) * (a - 1) >> 14), ax = abs_i(bx - x0);
             int top = ax <= a / 3 ? 3 : ax <= a * 2 / 3 ? 2 : 1;
             uint8_t col = sk_bud_col(f, pc, k * 3 + j);
+            if (fl_fcos(ba) < -4000)             /* (behind the cap: hidden) */
+                continue;
             fl_put(c, bx, y0 - top - 1, col);
             fl_put(c, bx + 1, y0 - top - 1, col);
             fl_put(c, bx, y0 - top, col);
@@ -219,10 +268,9 @@ static void sk_caps(flora_t *f, flc_t *c)
 
 static void sk_crown_draw(flora_t *f, flc_t *c)
 {
-    static const int8_t SPOT[5][2] = {{-1, -1}, {1, 0}, {-1, 1}, {2, -2}, {0, 2}};
-    int cx, cy, r = sk_crown_r(f), dx, dy, i, sh = sk_shine(f), neck = sk_height(f);
+    static const int16_t SPOT[5][2] = {{0, -1}, {205, 1}, {410, 0}, {615, -2}, {820, 2}};   /* (round it, up/down) */
+    int cx, cy, r = sk_crown_r(f), dx, dy, i, sh = sk_shine(f);
     sk_crown(f, &cx, &cy);
-    (void)neck;
     for (dy = -r; dy <= r; dy++)
         for (dx = -r; dx <= r; dx++) {
             int d2 = dx * dx + dy * dy;
@@ -232,9 +280,14 @@ static void sk_crown_draw(flora_t *f, flc_t *c)
                                         : sh > 160 && d2 * 3 < r * r ? FL_INK
                                         : dx + dy > r / 2 ? FL_C(FL_R_SAGE, 1) : FL_C(FL_R_SAGE, 0));
         }
-    for (i = 0; i < 5; i++)
-        if (abs_i(SPOT[i][0]) < r && abs_i(SPOT[i][1]) < r)
-            fl_put(c, cx + SPOT[i][0], cy + SPOT[i][1], i & 1 ? FL_C(FL_R_ORCHID, 0) : FL_C(FL_R_SEA, 0));
+    for (i = 0; i < 5; i++) {                    /* its spots turn round it (the light stays on the left) */
+        int32_t a = SPOT[i][0] + sk_turn(f);
+        int sy = SPOT[i][1], rr = r - 1 - (abs_i(sy) >= 2), sx;
+        if (fl_fcos(a) <= 0 || abs_i(sy) >= r || rr < 1)
+            continue;                            /* (on the far side) */
+        sx = (int)(fl_fsin(a) * rr >> 14);
+        fl_put(c, cx + sx, cy + sy, i & 1 ? FL_C(FL_R_ORCHID, 0) : FL_C(FL_R_SEA, 0));
+    }
 }
 
 /* ---- the listener -------------------------------------------------------------------------------------------- */
@@ -243,6 +296,7 @@ static void sk_crown_draw(flora_t *f, flc_t *c)
 static void sk_moose_at(flora_t *f, flc_t *c, int mx, int my, int look, int arms)
 {
     int dx, dy, sway = (fl_fsin((int32_t)(f->t >> 2)) * (sk_lvl(f) > 60 ? 1 : 0)) >> 14;
+    int nod = sk_aw(f) > 128 && (f->sk_pos & 1023u) < 200u;   /* (it nods on the beat: antlers, band and cups dip) */
     const uint8_t Y0 = FL_C(FL_R_FIRE, 0), Y1 = FL_C(FL_R_FIRE, 1), HI = FL_C(FL_R_SAND, 0), BR = FL_C(FL_R_PEACH, 2),
                   PH = FL_C(FL_R_ORCHID, 1), BAND = FL_C(FL_R_ORCHID, 2), SH = FL_C(FL_R_JADE, 3);
     static const int8_t ANT[6][2] = {{3, -5}, {4, -6}, {5, -7}, {3, -7}, {6, -6}, {4, -8}};   /* antlers: two forks */
@@ -250,8 +304,8 @@ static void sk_moose_at(flora_t *f, flc_t *c, int mx, int my, int look, int arms
     for (dx = -5; dx <= 5; dx++)                 /* its shadow on the ground */
         fl_put(c, mx + dx, my + 5, SH);
     for (dx = 0; dx < 6; dx++) {
-        fl_put(c, mx + sway - ANT[dx][0], my + ANT[dx][1], BR);
-        fl_put(c, mx + sway + ANT[dx][0], my + ANT[dx][1], BR);
+        fl_put(c, mx + sway - ANT[dx][0], my + nod + ANT[dx][1], BR);
+        fl_put(c, mx + sway + ANT[dx][0], my + nod + ANT[dx][1], BR);
     }
     for (dy = -5; dy <= 4; dy++)                 /* the round back, sitting: a little wider at the bottom */
         for (dx = -6; dx <= 6; dx++) {
@@ -261,10 +315,10 @@ static void sk_moose_at(flora_t *f, flc_t *c, int mx, int my, int look, int arms
             fl_put(c, x, my + dy, dx >= 4 && ((dx ^ dy) & 1) ? Y1 : dx <= -3 && dy <= -1 && d2 > 12 ? HI : Y0);
         }
     for (dx = -4; dx <= 4; dx++)                 /* the headphones' band over the top of its head */
-        fl_put(c, mx + sway + dx, my - 5 - (dx > -3 && dx < 3), BAND);
+        fl_put(c, mx + sway + dx, my + nod - 5 - (dx > -3 && dx < 3), BAND);
     for (dy = -2; dy <= 0; dy++) {               /* .. its cups */
-        fl_put(c, mx + sway - 6, my + dy, PH);
-        fl_put(c, mx + sway + 6, my + dy, PH);
+        fl_put(c, mx + sway - 6, my + nod + dy, PH);
+        fl_put(c, mx + sway + 6, my + nod + dy, PH);
     }
     fl_put(c, mx, my + 3, Y1), fl_put(c, mx + 1, my + 3, Y1), fl_put(c, mx, my + 2, HI);   /* a little tail */
     if (arms == 1) {                             /* both arms up to the light */
@@ -302,6 +356,7 @@ static void sk_render(flora_t *f, flc_t *c)
     for (i = 0; i < FL_MAX_PART; i++)            /* far fireflies */
         if (f->part[i].life && (i & 1))
             fl_draw_part(f, c, i);
+    sk_swarm(f, c, 0);                           /* (the butterflies behind it) */
     sk_stem(f, c);
     sk_caps(f, c);
     sk_crown_draw(f, c);
@@ -310,5 +365,5 @@ static void sk_render(flora_t *f, flc_t *c)
     for (i = 0; i < FL_MAX_PART; i++)            /* near ones */
         if (f->part[i].life && !(i & 1))
             fl_draw_part(f, c, i);
-    sk_swarm(f, c);                              /* (the butterflies, over everything) */
+    sk_swarm(f, c, 1);                           /* (.. and in front of everything) */
 }

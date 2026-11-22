@@ -2,9 +2,10 @@
  * Copyright (C) 2026 Sornyak contributors */
 /* The torch (FL_SP_PLANT, the Top algorithms), included by flora.c after sornyak.c: a starry night over a round green
  * hill, the small yellow moose sitting on top with a torch, its beam swinging slowly up into the sky, moths drifting up
- * the beam. Around the moose, rings of butterflies circle: one ring for nothing recorded, one more for every track of
- * the pattern playing that has something in it (flora_set_tracks), up to five. They follow the sound: louder, they
- * flap and circle faster and the beam grows brighter; every note makes one butterfly of each ring flash and jump.
+ * the beam. Round the beam, a loose cloud of butterflies in three depth layers (bf_cloud below), reaching further up
+ * it and fuller for every recorded track of the pattern playing (flora_set_tracks). They follow the sound: louder,
+ * they circle faster and the beam grows brighter; their wings beat on the tempo and a note flashes some. When it is
+ * quiet they rest on the hill and the moose, and the beam dims.
  * Drawn straight onto the canvas: integer maths, no allocation. */
 
 #define TQ_NRING 5
@@ -67,7 +68,7 @@ static void tq_beam(flora_t *f, flc_t *c)
 {
     int W = c->w, H = c->h, x, y, ox, oy;
     int32_t a = tq_beam_angle(f), dx = fl_fcos(a), dy = fl_fsin(a);   /* Q14 */
-    int32_t dens = 6 + sk_lvl(f) / 28;          /* of 16 */
+    int32_t dens = 3 + sk_aw(f) * 3 / 255 + sk_lvl(f) / 28;   /* of 16 (dim when it is quiet) */
     tq_torch(f, &ox, &oy);
     for (y = 0; y < H; y++)
         for (x = 0; x < W; x++) {
@@ -148,79 +149,165 @@ static void tq_fly(flc_t *c, int x, int y, int open, uint8_t c0, uint8_t c1, int
     fl_put(c, x, y - 1, b), fl_put(c, x, y, b);  /* (its body) */
 }
 
-/* the rings of butterflies round the light: each circles the beam like a halo threaded on it, the first low on the
- * beam, one more further up for every recorded track; they tilt with the beam as it swings and widen as it does.
- * Back halves (front = 0, darker) or front halves */
-static void tq_rings(flora_t *f, flc_t *c, int front)
+/* ---- the butterflies: a loose cloud in three depth layers (both scenes) ---------------------------------------- */
+/* Not rings: each butterfly has an orbit of its own about the cloud's axis (the beam; the Sornyak's top): its own
+ * radius, tilt, height on the axis and pace, most one way round, some the other. They go in small clusters (up to three
+ * share a phase), breathe in and out, and now and then one loops away and comes back. Three layers: far ones are
+ * specks behind everything, the middle ones the usual size (their far half behind, darker), near ones bigger and
+ * brighter, in front of everything. The reverb loosens the cloud. Their wings beat twice a beat (the near ones
+ * together), the cloud lifts on the bar's first beat, and a note flashes some. The torch's land round the moose
+ * when it is quiet and lift off, one by one, when the music starts. */
+enum { BF_FAR = 0, BF_MID, BF_NEAR };
+typedef struct {
+    int ox, oy;                /* where the cloud's axis starts */
+    int32_t ax, ay;            /* .. its direction, Q14 */
+    int lo, hi;                /* how far along the axis they spread, px */
+    int rad;                   /* their orbits' radius, px (each its own, about it) */
+    int n;                     /* how many */
+    uint32_t seed;
+    int rest;                  /* 1: they land when it is quiet (the torch) */
+    const uint8_t (*col)[2];   /* the colours (light, dark) */
+    int ncol;
+} bf_cloud_t;
+
+static int bf_layer(uint32_t h) { uint32_t v = h % 10u; return v < 4u ? BF_FAR : v < 8u ? BF_MID : BF_NEAR; }
+
+static void bf_speck(flc_t *c, int x, int y, int open, uint8_t col)   /* a far one: a speck, its wings a flicker */
 {
-    int n = 1 + sk_popcount(f->tracks), k, i, ox, oy;
-    int32_t ba = tq_beam_angle(f), bx = fl_fcos(ba), by = fl_fsin(ba);    /* along the beam, Q14 */
-    tq_torch(f, &ox, &oy);
-    for (k = 0; k < n && k < TQ_NRING; k++) {
-        int along = 8 + k * 9 + ((fl_fsin((int32_t)(f->t >> 4) + k * 200) * 1) >> 14);   /* (each floats a little) */
-        int rx = 15 + k * 2, ry = 5, cnt = 12 + k * 2 + f->reverb / 32, dir = k & 1 ? -1 : 1;   /* (more with reverb) */
-        int cx = ox + (int)((bx * along) >> 14), cy = oy + (int)((by * along) >> 14);
-        int32_t ph = (int32_t)(f->tq_phase / (uint32_t)(64 + k * 16)) * dir;
-        for (i = 0; i < cnt; i++) {
-            int32_t a = ph + i * 1024 / cnt, co = fl_fcos(a), si = fl_fsin(a);
-            int pc = (k * 5 + i) % 12, lit = f->pulse_on[pc] && f->t - f->pulse_t[pc] < 300u, r = rx + (lit ? 2 : 0);
-            /* across the beam (its perpendicular, -by, bx) by the ring's width, along it by its tilt */
-            int x = cx + (int)(((-by * co >> 14) * r + (bx * si >> 14) * ry) >> 14);
-            int y = cy + (int)(((bx * co >> 14) * r + (by * si >> 14) * ry) >> 14);
-            int open = (int)(((f->tq_flap >> 7) + (uint32_t)(i * 3 + k)) & 3u) < 2;
-            if ((si >= 0) != front)              /* (the near half in front, the far half behind, darker) */
-                continue;
-            tq_fly(c, x, y, open, front ? TQ_RING_COL[k][0] : TQ_RING_COL[k][1], front ? TQ_RING_COL[k][1] : FL_S3, lit);
-        }
+    fl_put(c, x, y, col);
+    if (open)
+        fl_put(c, x - 1, y - 1, col), fl_put(c, x + 1, y - 1, col);
+}
+static void bf_big(flc_t *c, int x, int y, int open, uint8_t c0, uint8_t c1, int lit)   /* a near one */
+{
+    uint8_t w = lit ? FL_INK : c0, b = FL_C(FL_R_SAND, 3);
+    if (open) {
+        fl_put(c, x - 2, y - 2, w), fl_put(c, x + 2, y - 2, w);
+        fl_put(c, x - 3, y - 1, w), fl_put(c, x - 2, y - 1, w), fl_put(c, x - 1, y - 1, w);
+        fl_put(c, x + 1, y - 1, w), fl_put(c, x + 2, y - 1, w), fl_put(c, x + 3, y - 1, w);
+        fl_put(c, x - 2, y, c1), fl_put(c, x - 1, y, c1), fl_put(c, x + 1, y, c1), fl_put(c, x + 2, y, c1);
+    } else {
+        fl_put(c, x - 1, y - 3, w), fl_put(c, x + 1, y - 3, w), fl_put(c, x - 1, y - 2, w), fl_put(c, x + 1, y - 2, w);
+        fl_put(c, x - 1, y - 1, c1), fl_put(c, x + 1, y - 1, c1);
     }
+    fl_put(c, x, y - 1, b), fl_put(c, x, y, b);
 }
 
-/* the Sornyak's butterflies: they come while someone plays live over the pattern (the fifth instrument), one by
- * one, and leave a while after. Two flat circles round the top of the Sornyak, the inner one way round, the outer
- * the other, at the tempo's pace (a turn of the inner in six seconds at 100 BPM); a few of them (eight). The reverb
- * scatters them: each wanders off its circle, in and out and along it, the further the more reverb. A note flashes
- * some */
-static void sk_swarm(flora_t *f, flc_t *c)
+/* where one rests when it is quiet: on the hill round the moose, a few on the moose's back */
+static void tq_rest_at(const flora_t *f, uint32_t h, int *x, int *y)
 {
-    static const uint8_t COL[2][2] = {{FL_INK, FL_C(FL_R_SEA, 0)}, {FL_C(FL_R_SAND, 0), FL_C(FL_R_FIRE, 0)}};
-    int n = (8 * f->sk_live + 65534) / 65535, sc = f->reverb / 12, i, cx, cy;   /* (scatter 0..21 px) */
-    int32_t base = (int32_t)(f->sk_bph / 580u);                   /* 0..1023 a turn */
-    if (!n)
+    int mx, my;
+    tq_seat(f, &mx, &my);
+    if ((h >> 3) % 6u == 0u) {
+        *x = mx - 3 + (int)((h >> 7) % 7u);
+        *y = my - 5;
         return;
-    sk_crown(f, &cx, &cy);
-    cy += 5;                                     /* (round the crown and the top tier) */
-    for (i = 0; i < n; i++) {
-        uint32_t h = fl_hash32((uint32_t)i * 2654435761u + 17u);
-        int ring = i & 1, k = i >> 1, cnt = 4, R = ring ? 18 : 11;
-        int32_t a = (ring ? -base * 2 / 3 : base) + k * 1024 / cnt + (ring ? 128 : 0);
-        int32_t w1 = fl_fsin((int32_t)(f->t / 7u) + (int32_t)(h & 1023u)), w2 = fl_fcos((int32_t)(f->t / 11u) + (int32_t)(h >> 10 & 1023u));
-        int r, x, y, pc = (int)(h % 12u), lit = f->pulse_on[pc] && f->t - f->pulse_t[pc] < 300u;
-        a += (int32_t)((w2 * sc * 6) >> 14);     /* (along the circle) */
-        r = R + (int)((w1 * sc) >> 14) + (lit ? 1 : 0);   /* (in and out) */
-        x = cx + (int)((fl_fcos(a) * r) >> 14);
-        y = cy + (int)((fl_fsin(a) * r) >> 14);
-        tq_fly(c, x, y, (int)(((f->tq_flap >> 7) + h) & 3u) < 2, COL[ring][0], COL[ring][1], lit);
+    }
+    *x = mx - 44 + (int)((h >> 7) % 80u);
+    if (*x > tq_w(f) - 3)
+        *x -= 80;
+    *y = tq_hill(f, *x) - 1;
+}
+
+/* pass 0: what is behind (the far layer, the middle one's far half); pass 1: what is in front */
+static void bf_cloud(flora_t *f, flc_t *c, const bf_cloud_t *b, int pass)
+{
+    int i, aw = sk_aw(f), lvl = sk_lvl(f), loose = f->reverb / 40;
+    int lift = aw > 128 && f->sk_pos < 160u;     /* (the bar's first beat) */
+    for (i = 0; i < b->n; i++) {
+        uint32_t h = fl_hash32((uint32_t)i * 2654435761u + b->seed), h2 = fl_hash32(h + 0x9E37u);
+        uint32_t hg = fl_hash32((uint32_t)(i / 3) * 40503u + b->seed);   /* (its cluster) */
+        int L = bf_layer(h), dir = (hg >> 5) % 4u ? 1 : -1, k = (int)(h2 % (uint32_t)b->ncol);
+        uint32_t spd = 100u + hg % 140u + (uint32_t)L * 40u;
+        int32_t a = (int32_t)(((f->tq_phase >> 8) * spd) >> 7) * dir + (int32_t)(hg >> 20) + (int32_t)(h % 90u);
+        int32_t co = fl_fcos(a), si = fl_fsin(a);
+        int r = b->rad * (55 + (int)(h2 % 75u)) / 100, ry = 2 + (int)((h2 >> 24) % 5u), x, y, front, open, lit, pc;
+        int along = b->lo + (int)((h >> 8) % (uint32_t)(b->hi - b->lo + 1));
+        uint32_t cyc = 9000u + h2 % 7000u, ph = (f->t + h * 13u) % cyc;
+        r += (int)((fl_fsin((int32_t)(f->t / (9u + h2 % 7u)) + (int32_t)(h2 >> 10)) * (2 + loose)) >> 14);   /* (breathing) */
+        if (ph < 1500u)                          /* (a loop away and back) */
+            r += (int)((fl_fsin((int32_t)(ph * 512u / 1500u)) * (b->rad / 2 + 4)) >> 14);
+        along += (int)((fl_fsin((int32_t)(f->t / 13u) + (int32_t)(h & 1023u)) * (3 + loose)) >> 14);
+        x = b->ox + (int)((b->ax * along) >> 14) + (int)((((-b->ay * co) >> 14) * r + ((b->ax * si) >> 14) * ry) >> 14);
+        y = b->oy + (int)((b->ay * along) >> 14) + (int)((((b->ax * co) >> 14) * r + ((b->ay * si) >> 14) * ry) >> 14);
+        y -= lift * (L == BF_NEAR ? 2 : 1);
+        front = si >= 0;
+        pc = (int)(h % 12u);
+        lit = f->pulse_on[pc] && f->t - f->pulse_t[pc] < 300u;
+        if (aw > 64) {                           /* wings: twice a beat, the near ones together, the far ones loose */
+            uint32_t off = L == BF_NEAR ? 0u : L == BF_MID ? (h % 3u) * 170u : h % 1024u;
+            open = ((f->sk_pos * 2u + off) & 1023u) < 512u;
+        } else {
+            open = (int)(((f->tq_flap >> 7) + h) & 3u) < 2;
+        }
+        if (b->rest) {                           /* quiet: down to rest; music: up again, one by one */
+            int d = (int)(h2 % 150u), e = fl_clampi((aw - d) * 255 / (255 - d), 0, 255);
+            if (e < 255) {
+                int rx, rq;
+                tq_rest_at(f, h2, &rx, &rq);
+                x = rx + (x - rx) * e / 255;
+                y = rq + (y - rq) * e / 255 - (int)((fl_fsin(e * 2) * 6) >> 14);   /* (a hop up on the way) */
+                if (e == 0)
+                    open = ((f->t / 700u + h) % 9u) == 0u;   /* (resting: wings shut, opened now and then) */
+                if (e < 128)
+                    front = 1, L = BF_MID;
+            }
+        }
+        if (pass != (L == BF_NEAR || (L == BF_MID && front)))
+            continue;
+        if (L == BF_FAR)
+            bf_speck(c, x, y, open, lit ? FL_INK : b->col[k][1]);
+        else if (L == BF_MID)
+            tq_fly(c, x, y, open, front ? b->col[k][0] : b->col[k][1], front ? b->col[k][1] : FL_S3, lit);
+        else
+            bf_big(c, x, y, open, b->col[k][0], b->col[k][1], lit || lvl > 200);
     }
 }
 
-/* with the reverb, more butterflies fluttering loose round the beam, each on a circle of its own about it, at its own
- * height up the light */
-static void tq_free(flora_t *f, flc_t *c)
+/* the torch's: round the beam, up it as far as the recorded tracks reach; more of them with more tracks, the reverb */
+static void tq_cloud(flora_t *f, flc_t *c, int pass)
 {
-    int n = f->reverb / 5, i, ox, oy, top = 10 + sk_popcount(f->tracks) * 9;
-    int32_t ba = tq_beam_angle(f), bx = fl_fcos(ba), by = fl_fsin(ba);
-    tq_torch(f, &ox, &oy);
-    for (i = 0; i < n; i++) {
-        uint32_t h = fl_hash32((uint32_t)i * 2246822519u + 101u);
-        int along = 4 + (int)(h % (uint32_t)top), r = 6 + (int)((h >> 8) % 18u), dir = (h >> 20) & 1u ? 1 : -1;
-        int32_t a = (int32_t)(f->tq_phase / (48u + (h >> 12) % 64u)) * dir + (int32_t)(h >> 22), co = fl_fcos(a), si = fl_fsin(a);
-        int pc = (int)(h % 12u), lit = f->pulse_on[pc] && f->t - f->pulse_t[pc] < 300u, k = (int)((h >> 16) % TQ_NRING);
-        int bob = (fl_fsin(a * 2 + (int32_t)(h & 1023)) * 2) >> 14;
-        int x = ox + (int)((bx * along) >> 14) + (int)(((-by * co >> 14) * r + (bx * si >> 14) * 4) >> 14);
-        int y = oy + (int)((by * along) >> 14) + (int)(((bx * co >> 14) * r + (by * si >> 14) * 4) >> 14) + bob;
-        tq_fly(c, x, y, (int)(((f->tq_flap >> 7) + h) & 3u) < 2, si >= 0 ? TQ_RING_COL[k][0] : TQ_RING_COL[k][1],
-               si >= 0 ? TQ_RING_COL[k][1] : FL_S3, lit);
+    bf_cloud_t b;
+    int n = sk_popcount(f->tracks);
+    tq_torch(f, &b.ox, &b.oy);
+    {
+        int32_t ba = tq_beam_angle(f);
+        b.ax = fl_fcos(ba);
+        b.ay = fl_fsin(ba);
     }
+    b.lo = 6;
+    b.hi = 12 + n * 7;
+    b.rad = 20;
+    b.n = 12 + (n * 6 + f->reverb / 24) * sk_aw(f) / 255;
+    if (b.n > 38)
+        b.n = 38;
+    b.seed = 17u;
+    b.rest = 1;
+    b.col = TQ_RING_COL;
+    b.ncol = TQ_NRING;
+    bf_cloud(f, c, &b, pass);
+}
+
+/* the Sornyak's: they come while someone plays live over the pattern (the fifth instrument), one by one, and leave a
+ * while after; a cloud round its crown and top tier */
+static void sk_swarm(flora_t *f, flc_t *c, int pass)
+{
+    static const uint8_t COL[3][2] = {{FL_INK, FL_C(FL_R_SEA, 0)}, {FL_C(FL_R_SAND, 0), FL_C(FL_R_FIRE, 0)},
+                                      {FL_C(FL_R_ORCHID, 0), FL_C(FL_R_ORCHID, 1)}};
+    bf_cloud_t b;
+    sk_crown(f, &b.ox, &b.oy);
+    b.oy += 5;
+    b.ax = 0;
+    b.ay = -16384;                               /* (up) */
+    b.lo = -8;
+    b.hi = 8;
+    b.rad = 20;
+    b.n = (12 * f->sk_live + 65534) / 65535;
+    b.seed = 91u;
+    b.rest = 0;
+    b.col = COL;
+    b.ncol = 3;
+    bf_cloud(f, c, &b, pass);
 }
 
 /* moths drifting up the beam, slowly, more when it is loud */
@@ -261,9 +348,8 @@ static void tq_render(flora_t *f, flc_t *c)
         break;
     }
     tq_moths(f, c);
-    tq_rings(f, c, 0);
+    tq_cloud(f, c, 0);
     sk_moose_at(f, c, mx, my, -1, 2);
     tq_torch_draw(f, c);
-    tq_rings(f, c, 1);
-    tq_free(f, c);
+    tq_cloud(f, c, 1);
 }
