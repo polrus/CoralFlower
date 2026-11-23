@@ -11,8 +11,8 @@ you play becomes a whole chord, with a bass underneath. While you play, a small 
 Sornyak is inspired by the Telepathic Instruments Orchid. Its controls are redesigned for the FM-1's keys and
 buttons, because every instrument is played differently.
 
-<p align="center"><img src="docs/images/grow.gif" width="480" alt="A small yellow moose on a night hill shines a torch into the sky while rings of butterflies circle it, one more ring for each track recorded"></p>
-<p align="center"><img src="docs/images/sornyak.gif" width="480" alt="The Sornyak growing a tier for each of three tracks and shining with the fourth; butterflies circle its top while someone plays live"></p>
+<p align="center"><img src="docs/images/grow.gif" width="480" alt="A small yellow moose on a night hill shines a torch into the sky while butterflies gather round it in a loose cloud, more for each track recorded"></p>
+<p align="center"><img src="docs/images/sornyak.gif" width="480" alt="The Sornyak growing from a sprout, a tier for each of three tracks, shining with the fourth; butterflies wander round its top while someone plays live"></p>
 
 Sornyak has no published release or installer site yet. Until it does, build it yourself (below); the browser
 version and the installer of [CoralFlower's site](https://ficusficusov.github.io/CoralFlower/) run CoralFlower, not
@@ -39,16 +39,20 @@ Sornyak.
   change slowly on their own. Chords and basses have separate lists. Every sound has an editor, and you can save your
   own.
 - **The torch** (the Top layout). A small round yellow moose sits on a hill at night and shines a torch into the
-  stars; the beam swings slowly and moths drift up it. Butterflies circle the moose: one ring, and one more for each
-  track of the playing pattern that has something recorded. They flap and circle faster when the music is loud,
-  and every note makes some of them flash.
+  stars; the beam swings slowly and moths drift up it. Butterflies wander round it in a loose cloud, near and far,
+  more of them for each track of the playing pattern that has something recorded. Their wings beat on the beat, the
+  cloud lifts on the first beat of each bar, and they settle in the grass when the music stops. Every note makes some
+  of them flash, and the moose nods along.
 - **The Sornyak** (the Side layout). A pale weed in tiers grows on a night meadow while the music plays: one tier for
   each of the first three tracks of the playing pattern that have something recorded, and with the fourth the crown
   shines over the whole sky. When it falls quiet, it shrinks back to a small sprout. On the beat it sways, dips and
   stretches with the loudness, and its crown and caps turn round once a bar. Its light follows the sound: the rays and the halo breathe with the loudness, a strong chord flashes
   the sky, and every note lights a bud. When you play live over the pattern (the fifth instrument), butterflies come
-  and circle the top of the Sornyak at the song's tempo; the reverb scatters them. A small round yellow moose with
+  and wander round the top of the Sornyak at the song's tempo; the reverb scatters them. A small round yellow moose with
   headphones sits in the grass and listens.
+- **The start.** A comet falls into the meadow and leaves a glowing crater, and the title drops in letter by letter
+  with a sound of its own (GLOBAL > Display > BOOT SND turns it off). The interface colours to choose from follow
+  the title's letters.
 - **Live over a pattern.** While a pattern plays, HOME's keys and PRESETS play a sound of their own on the Layer, so
   the pattern's chords keep theirs; REC there records you into the pattern's Layer track.
 - **MIDI over USB.** The chords, the bass and the sequencer's Layer and Drums go out on four channels you set. The
@@ -57,7 +61,7 @@ Sornyak.
 <table>
   <tr>
     <td><img src="docs/images/home.png" width="260" alt="HOME: the chord name above the moose with its torch"></td>
-    <td><img src="docs/images/sornyak.png" width="260" alt="The Side layout: the Sornyak with two tracks recorded, a small yellow moose listening"></td>
+    <td><img src="docs/images/sornyak.png" width="260" alt="The Side layout: the Sornyak swaying and shining while a pattern plays, a small yellow moose listening"></td>
     <td><img src="docs/images/chord.png" width="260" alt="CHORD: a chord button's notes on a piano"></td>
   </tr>
   <tr>
