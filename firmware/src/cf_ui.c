@@ -541,7 +541,7 @@ static void ui_knob_turn(int k, int d)
         switch (cu.page[SCR_GLO]) {
         case 0:
             if (k == 0)
-                cs.accent = (uint8_t)wrapi(cs.accent + d, CF_NTHEMES);
+                cs.accent = CF_THEME_ORDER[wrapi(cf_theme_pos(cs.accent) + d, CF_NTHEMES)];   /* (the picker's order) */
             if (k == 1)
                 cs.backdrop = (uint8_t)wrapi(cs.backdrop + d, FL_NBD);
             if (k == 2) {

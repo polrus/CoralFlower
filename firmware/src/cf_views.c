@@ -218,8 +218,9 @@ static void view_display(int x0)
     static const char *const BD[FL_NBD] = {"Scene", "Ripples", "None"};
     int i, n = CF_NTHEMES, sw = 14, gap = 6, tw = n * sw + (n - 1) * gap, x = x0 + (216 - tw) / 2, y = VIEW_Y + 4;
     for (i = 0; i < n; i++) {
-        int on = i == cs.accent % CF_NTHEMES, xx = x + i * (sw + gap);
-        uint8_t c = FL_C(CF_THEMES[i].ramp, 1);
+        const cf_theme_t *th = &CF_THEMES[CF_THEME_ORDER[i]];   /* (S o r n y a k, then the rest) */
+        int on = CF_THEME_ORDER[i] == cs.accent % CF_NTHEMES, xx = x + i * (sw + gap);
+        uint8_t c = FL_C(th->ramp, th->sw);
         if (on) {
             fb_rect(xx - 2, y - 2, sw + 4, sw + 4, C_ACC(1));
             fb_rect(xx - 1, y - 1, sw + 2, sw + 2, FL_BG);

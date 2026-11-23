@@ -25,15 +25,29 @@ static const char *const SCR_NAME[SCR_N] = {"HOME", "CHORD", "ENVELOPE", "BASS",
 
 /* themes: the one interface colour (GLO > Display > COLOR), a palette ramp, after the M-VAVE synths' panel
  * colours and a few more */
-typedef struct { const char *name; uint8_t ramp; uint32_t light; } cf_theme_t;   /* light: another lightest step
-                                                                                     * (0xRRGGBB), 0 = the ramp's */
-static const cf_theme_t CF_THEMES[] = {
-    {"Coral", FL_R_ROSE, 0}, {"Amber", FL_R_FIRE, 0}, {"Peach", FL_R_PEACH, 0},
-    {"Lime", FL_R_LIME, 0xB0E34Cu},            /* (the lime ramp's top turned greener: the UI's own) */
-    {"Jade", FL_R_JADE, 0x5BB42Fu},            /* (the jade ramp starts yellow-green: the leaf green instead) */
-    {"Sky", FL_R_SEA, 0}, {"Orchid", FL_R_ORCHID, 0}, {"Bone", FL_R_SAND, 0}, {"Mist", FL_R_SAGE, 0},
+typedef struct { const char *name; uint8_t ramp; uint32_t light; uint8_t top, sw; } cf_theme_t;
+/* light: another lightest step (0xRRGGBB), 0 = the ramp's; top: the ramp's shade the theme starts at (a darker
+ * theme on the same ramp); sw: the ramp's shade its swatch shows in the picker */
+static const cf_theme_t CF_THEMES[] = {          /* (in the order settings store them: new ones go at the end) */
+    {"Coral", FL_R_ROSE, 0, 0, 1}, {"Amber", FL_R_FIRE, 0, 0, 0}, {"Peach", FL_R_PEACH, 0, 0, 1},
+    {"Lime", FL_R_LIME, 0xB0E34Cu, 0, 1},      /* (the lime ramp's top turned greener: the UI's own) */
+    {"Jade", FL_R_JADE, 0x5BB42Fu, 0, 1},      /* (the jade ramp starts yellow-green: the leaf green instead) */
+    {"Sky", FL_R_SEA, 0, 0, 1}, {"Orchid", FL_R_ORCHID, 0, 0, 1}, {"Bone", FL_R_SAND, 0, 0, 1},
+    {"Mist", FL_R_SAGE, 0, 0, 1},
+    {"Orange", FL_R_FIRE, 0, 1, 1},            /* (the title's "o": the fire ramp a step down) */
 };
 #define CF_NTHEMES ((int)(sizeof CF_THEMES / sizeof CF_THEMES[0]))
+/* the picker's order: the colours of the title's letters, S o r n y a k (cf_title_draw), then the rest */
+static const uint8_t CF_THEME_ORDER[] = {1, 9, 0, 6, 5, 4, 3, 2, 7, 8};
+_Static_assert(sizeof CF_THEME_ORDER == sizeof CF_THEMES / sizeof CF_THEMES[0], "every theme in the picker once");
+static int cf_theme_pos(uint32_t accent)        /* where theme accent is in the picker */
+{
+    int i;
+    for (i = 0; i < CF_NTHEMES; i++)
+        if (CF_THEME_ORDER[i] == accent % (uint32_t)CF_NTHEMES)
+            return i;
+    return 0;
+}
 
 /* ------------------------------------------------------------ settings --- */
 /* everything the user sets and the unit keeps (cf_settings.c stores it) */
@@ -245,7 +259,8 @@ static void cf_palette_build(void)
         cf_pal[i] = fl_pal_rgb[i];
     for (i = 0; i < 4u; i++) {
         const cf_theme_t *th = &CF_THEMES[cs.accent % CF_NTHEMES];
-        cf_pal[48 + i] = !i && th->light ? th->light : fl_pal_rgb[FL_C(th->ramp, i)];
+        uint32_t sh = i + th->top > 3u ? 3u : i + th->top;
+        cf_pal[48 + i] = !i && th->light ? th->light : fl_pal_rgb[FL_C(th->ramp, sh)];
         cf_pal[52 + i] = cf_pal[48 + i];
     }
     for (i = 0; i < 8u; i++)
