@@ -566,6 +566,71 @@ static const struct { uint16_t ms; uint8_t note, vel; int8_t pan; } CF_BOOT[] = 
 static const uint32_t CF_BOOT_INC[12] = {796254u, 843601u, 893765u, 946911u, 1003217u, 1062871u, 1126073u, 1193033u,
                                          1263974u, 1339134u, 1418763u, 1503127u};   /* MIDI note 0..11, per sample */
 static volatile uint8_t cf_boot_go;              /* the UI's: start it */
+#include "cf_boot_snd.h"                         /* (the owner's own sound, tools/gen_boot_sound.py; N 0: the bells) */
+#if CF_BOOT_SND_N
+/* the owner's sound in place of the bells: two IMA ADPCM streams (eng_sample.c's decoder), played as they are, at their
+ * own level (16-bit full scale is the mix's), from flash; it gives way to the chords as the bells did */
+static struct { uint8_t on, yield; int32_t gain; uint32_t pos; int32_t pred[2], idx[2]; } cfs;
+static const int16_t CF_IMA_STEP[89] = {     /* (eng_sample.c's tables: that engine is not in Sornyak's build) */
+    7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 19, 21, 23, 25, 28, 31, 34, 37, 41, 45, 50, 55, 60, 66, 73, 80, 88, 97,
+    107, 118, 130, 143, 157, 173, 190, 209, 230, 253, 279, 307, 337, 371, 408, 449, 494, 544, 598, 658, 724, 796,
+    876, 963, 1060, 1166, 1282, 1411, 1552, 1707, 1878, 2066, 2272, 2499, 2749, 3024, 3327, 3660, 4026, 4428,
+    4871, 5358, 5894, 6484, 7132, 7845, 8630, 9493, 10442, 11487, 12635, 13899, 15289, 16818, 18500, 20350,
+    22385, 24623, 27086, 29794, 32767};
+static const int8_t CF_IMA_IDX[8] = {-1, -1, -1, -1, 2, 4, 6, 8};
+static inline int32_t cf_bs_dec(const uint8_t *d, uint32_t pos, int32_t *pred, int32_t *idx)
+{
+    uint32_t b = d[pos >> 1], code = (pos & 1u) ? (b >> 4) : (b & 15u);
+    int32_t step = CF_IMA_STEP[*idx], vd = step >> 3;
+    if (code & 4u)
+        vd += step;
+    if (code & 2u)
+        vd += step >> 1;
+    if (code & 1u)
+        vd += step >> 2;
+    *pred = clamp(*pred + ((code & 8u) ? -vd : vd), -32768, 32767);
+    *idx = clamp(*idx + CF_IMA_IDX[code & 7u], 0, 88);
+    return *pred;
+}
+static void cf_boot_mix(int32_t *l, int32_t *r, uint32_t n)
+{
+    uint32_t i;
+    if (cf_boot_go) {
+        cf_boot_go = 0;
+        memset(&cfs, 0, sizeof cfs);
+        cfs.on = 1;
+        cfs.gain = 32768;
+    }
+    if (!cfs.on)
+        return;
+    if (cfs.yield) {                             /* (the chords come first: out over 4 blocks) */
+        cfs.gain -= 8192;
+        if (cfs.gain <= 0) {
+            cfs.on = 0;
+            return;
+        }
+    }
+    for (i = 0; i < n && cfs.pos < CF_BOOT_SND_N; i++, cfs.pos++) {
+        int32_t a = cf_bs_dec(CF_BOOT_SND_L, cfs.pos, &cfs.pred[0], &cfs.idx[0]);
+        int32_t b = cf_bs_dec(CF_BOOT_SND_R, cfs.pos, &cfs.pred[1], &cfs.idx[1]);
+        if (cfs.gain < 32768) {
+            a = (a * cfs.gain) >> 15;
+            b = (b * cfs.gain) >> 15;
+        }
+        l[i] += a;
+        r[i] += b;
+    }
+    if (cfs.pos >= CF_BOOT_SND_N)
+        cfs.on = 0;
+}
+static int cf_boot_yield(void)
+{
+    if (!cfs.on)
+        return voice_tail_yield();
+    cfs.yield = 1;
+    return 1;
+}
+#else
 static struct {
     uint8_t on;
     uint8_t yield;                               /* the audio is overloaded: it fades out at once (audio.c shed) */
@@ -652,14 +717,20 @@ static int cf_boot_yield(void)
     cfb.yield = 1;
     return 1;
 }
+#endif
 #define SHED_FIRST() cf_boot_yield()
 /* voice.c VOICE_NEW_NOTE: a note starts while the power-on sound rings: it gives way at once. It takes about half the
  * core at its start, and a chord beside it took the half past the guard's line: the guard let it go only two halves
  * later and, a half after that, still cut a note of the chord (rc3, the emulator's CF_LOADMODEL) */
 static void cf_boot_note(void)
 {
+#if CF_BOOT_SND_N
+    if (cfs.on)
+        cfs.yield = 1;
+#else
     if (cfb.on)
         cfb.yield = 1;
+#endif
 }
 
 static void cf_fx_chain(int32_t *l, int32_t *r, uint32_t n)
