@@ -411,7 +411,7 @@ static int cfp_holds(uint32_t part, uint32_t note)
     }
     if (cfa_k.on) {                                  /* (the keys' arpeggiator's notes: the ones that sound; cfa_k by
                                                       * name: a sequencer's may be the one in hand) */
-        if (cfa_k.cur == note)
+        if (cfa_k.cur == note || cfa_k.curx[0] == note || cfa_k.curx[1] == note)
             return 1;
         for (i = 0; i < cfa_k.sn; i++)
             if (cfa_k.son[i] && cfa_k.snote[i] == note)

@@ -13,9 +13,40 @@
  * silence starts the pattern on its first note, at once. Step times are exact (1/24-beat units against samples x
  * BPM, a 64-bit count: no drift). */
 
+/* Sornyak: and written patterns, from MIDI files (assets/arp, tools/gen_arp_patterns.py): the MODEs after Strum, each
+ * the file's notes as tones of the chord held (root, 3rd, 5th) and steps of the scale up from them, in its rhythm (a
+ * step of the file's grid a RATE step), notes starting together played together */
+#include "cf_arp_pat.h"
 enum { CF_ARP_UP, CF_ARP_DOWN, CF_ARP_INC, CF_ARP_EXC, CF_ARP_RAND, CF_ARP_ORDER, CF_ARP_REPEAT, CF_ARP_STRUM_UP,
-       CF_ARP_STRUM_DOWN, CF_ARP_NMODES };
-#define CF_ARP_STRUMMING(m) ((m) >= CF_ARP_STRUM_UP)
+       CF_ARP_STRUM_DOWN, CF_ARP_PAT_FIRST, CF_ARP_NMODES = CF_ARP_PAT_FIRST + (int)CF_ARP_NPATS };
+/* (the patterns after Strum: a MODE stored in the settings keeps its meaning) */
+#define CF_ARP_STRUMMING(m) ((m) == CF_ARP_STRUM_UP || (m) == CF_ARP_STRUM_DOWN)
+#define CF_ARP_WRITTEN(m) ((m) >= CF_ARP_PAT_FIRST)
+#if CF_ARP_NPATS
+/* a written pattern's note: tone (0 root, 1 3rd, 2 5th: of order, the chord from its root up, n notes), steps up the
+ * scale from it, octaves; the scale: KEY / SCALE's, or with Quantize off the chord root's major (minor: a minor 3rd) */
+static int cfa_pat_note(const uint8_t *order, uint32_t n, uint32_t b, int quant, int tonic, int scale)
+{
+    uint32_t tone = b & 3u, steps = (b >> 2) & 7u, oct = b >> 5;
+    int root = order[0], p, rel, i, base;
+    if (!n)
+        return -1;
+    p = root + (order[tone % n] - root + 120) % 12 + 12 * (int)oct;
+    if (steps) {
+        if (!quant) {                                /* (no key: the chord's own) */
+            tonic = root % 12;
+            scale = n > 1u && (order[1] - root + 120) % 12 == 3 ? CF_SC_MINOR : CF_SC_MAJOR;
+        }
+        rel = ((p - tonic) % 12 + 12) % 12;
+        base = p - rel;                              /* (the tonic at or below the tone) */
+        i = cf_scale_index(scale, rel);
+        if (i < 0)
+            i = cf_scale_index(scale, ((cf_snap(scale, tonic, p, 0) - tonic) % 12 + 12) % 12);
+        p = base + cf_scale_step(scale, i + (int)steps);
+    }
+    return p < 0 ? -1 : p > 127 ? -1 : p;
+}
+#endif
 /* RATE: a step, in 1/24 beat (a quarter note: 24) */
 static const uint8_t CF_ARP_UNITS[] = {96, 48, 24, 16, 12, 8, 6, 4, 3};
 #define CF_ARP_NRATES ((uint32_t)sizeof CF_ARP_UNITS)
@@ -29,6 +60,7 @@ typedef struct {
     uint8_t latched;                                 /* the keys are up, LATCH keeps the chord */
     uint32_t idx;                                    /* steps played since the pattern started */
     uint8_t cur;                                     /* the note sounding (0: none) */
+    uint8_t curx[2];                                 /* (a written pattern's: the others starting with it) */
     uint32_t gate_left;                              /* samples until it is let go */
     uint64_t acc;                                    /* samples x BPM x 2400 since the last step */
     uint8_t rnd_last;
@@ -102,11 +134,15 @@ static int cfa_pick(uint32_t i)
 
 static void cfa_note_off(void)
 {
-    if (cfa.cur && cfa_at != &cfa_k)
-        sqp_off(cfa_part(), cfa.cur);
-    else if (cfa.cur)
-        cfp_off(cfa_part(), cfa.cur);
-    cfa.cur = 0;
+    uint32_t i;
+    for (i = 0; i < 3u; i++) {
+        uint8_t *c = i ? &cfa.curx[i - 1u] : &cfa.cur;
+        if (*c && cfa_at != &cfa_k)
+            sqp_off(cfa_part(), *c);
+        else if (*c)
+            cfp_off(cfa_part(), *c);
+        *c = 0;
+    }
 }
 static void cfa_strum_off(void)
 {
@@ -173,10 +209,52 @@ static uint32_t cfa_div64(uint64_t n, uint32_t d)
     return q;
 }
 
+#if CF_ARP_NPATS
+/* a written pattern's step: what starts there (a step inside a longer note, or a rest: nothing, its gate goes on) */
+static void cfa_step_pat(uint64_t len)
+{
+    const cf_arp_pat_t *pt = &CF_ARP_PATS[(cfp_cfg.arp.mode - CF_ARP_PAT_FIRST) % CF_ARP_NPATS];
+    const cf_arp_step_t *st = &pt->step[cfa.idx % pt->n];
+    uint32_t g = cfp_cfg.arp.gate >= 20u && cfp_cfg.arp.gate <= 100u ? cfp_cfg.arp.gate : 70u, i, k = 0;
+    int up = 12 * (int)((cfa.idx / pt->n) % cfa_oct());   /* (OCTAVE: each time round an octave higher) */
+    cfa.idx++;
+    if (!st->len)
+        return;
+    cfa_note_off();
+    for (i = 0; i < st->n && i < 3u; i++) {
+        int nt = cfa_pat_note(cfa.order, cfa.n, st->note[i], cfc.cfg.quantize != CF_Q_OFF, cfc.cfg.tonic,
+                              cfc.cfg.scale);
+        if (nt < 0 || nt + up > 127)
+            continue;
+        nt += up;
+        if (k && (nt == cfa.cur || (k > 1u && nt == cfa.curx[0])))
+            continue;                                /* (the same note twice in a step: once) */
+        if (k)
+            cfa.curx[k - 1u] = (uint8_t)nt;
+        else
+            cfa.cur = (uint8_t)nt;
+        k++;
+        cfa_play((uint32_t)nt);
+    }
+    {                                                /* the gate: GATE % of the note's steps */
+        uint32_t s1 = cfa_div64(len, cfa_bpm() * 2400u), stp = s1 * st->len;
+        cfa.gate_left = stp / 100u * g + stp % 100u * g / 100u;
+    }
+    if (g >= 100u)
+        cfa.gate_left += CTL;
+}
+#endif
 static void cfa_step_n(uint64_t len)
 {
-    int nt = cfa_pick(cfa.idx);
+    int nt;
     uint32_t g = cfp_cfg.arp.gate >= 20u && cfp_cfg.arp.gate <= 100u ? cfp_cfg.arp.gate : 70u;
+#if CF_ARP_NPATS
+    if (CF_ARP_WRITTEN(cfp_cfg.arp.mode)) {
+        cfa_step_pat(len);
+        return;
+    }
+#endif
+    nt = cfa_pick(cfa.idx);
     cfa_note_off();
     cfa.idx++;
     if (nt < 0)

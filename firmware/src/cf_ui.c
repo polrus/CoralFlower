@@ -81,10 +81,20 @@ static int clampi(int v, int lo, int hi) { return v < lo ? lo : v > hi ? hi : v;
 static int wrapi(int v, int n) { return ((v % n) + n) % n; }
 
 /* the arpeggiator's names: a knob cell's (7 characters at most), the screen's title */
-static const char *const CF_ARP_SHORT[CF_ARP_NMODES] = {"Up", "Down", "Incl", "Excl", "Random", "Order", "Repeat",
-                                                        "Strum\x84", "Strum\x85"};
-static const char *const CF_ARP_NAME[CF_ARP_NMODES] = {"Up", "Down", "Inclusive", "Exclusive", "Random", "Order",
-                                                       "Repeat", "Strum up", "Strum down"};
+static const char *const CF_ARP_SHORT[CF_ARP_PAT_FIRST] = {"Up", "Down", "Incl", "Excl", "Random", "Order", "Repeat",
+                                                           "Strum\x84", "Strum\x85"};
+static const char *const CF_ARP_NAMES[CF_ARP_PAT_FIRST] = {"Up", "Down", "Inclusive", "Exclusive", "Random", "Order",
+                                                           "Repeat", "Strum up", "Strum down"};
+/* a MODE's name, short (K2) or whole (the header); the written patterns by their files' names */
+static const char *cf_arp_name(uint32_t m, int whole)
+{
+    m %= (uint32_t)CF_ARP_NMODES;
+#if CF_ARP_NPATS
+    if (CF_ARP_WRITTEN(m))
+        return CF_ARP_PATS[m - CF_ARP_PAT_FIRST].name;
+#endif
+    return whole ? CF_ARP_NAMES[m] : CF_ARP_SHORT[m];
+}
 static const char *const CF_ARP_RATE[CF_ARP_NRATES] = {"1/1", "1/2", "1/4", "1/4T", "1/8", "1/8T", "1/16", "1/16T",
                                                        "1/32"};
 
@@ -284,7 +294,7 @@ static void ui_knob_info(int k, cf_knob_t *o)
         if (cu.page[SCR_ARP] == 0) {             /* Pattern: ON/OFF MODE OCTAVE RATE */
             switch (k) {
             case 0: kfmt(o->name, 12, "ON/OFF"); kfmt(o->val, 14, cu.arp_on ? "On" : "Off"); break;
-            case 1: kfmt(o->name, 12, "MODE"); kfmt(o->val, 14, CF_ARP_SHORT[cs.arp.mode % CF_ARP_NMODES]); break;
+            case 1: kfmt(o->name, 12, "MODE"); kfmt(o->val, 14, cf_arp_name(cs.arp.mode, 0)); break;
             case 2: kfmt(o->name, 12, "OCTAVE"); kint(o->val, cs.arp.oct, 0); break;
             default:
                 kfmt(o->name, 12, "RATE");

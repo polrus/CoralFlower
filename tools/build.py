@@ -116,6 +116,7 @@ def generate():
             [tools / "gen_pixfont.py", GEN / "cf_fonts.h"],                            # CoralFlower's pixel type
             [tools / "gen_title.py", GEN / "cf_title.h"],                              # the intro's title
             [tools / "gen_boot_sound.py", GEN / "cf_boot_snd.h"],                      # the power-on sound
+            [tools / "gen_arp_patterns.py", GEN / "cf_arp_pat.h"],                     # the arp's written patterns
             [tools / "gen_aa_icons.py", GEN / "ui_icons.h"],
             [tools / "gen_aa_keycaps.py", GEN / "ui_keycaps.h"],
             [tools / "gen_ui_palettes.py", GEN / "ui_palettes.h"],

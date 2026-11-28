@@ -1254,7 +1254,7 @@ static void view_arp(int x0)
     int n, i, oc = cs.arp.oct >= 1 && cs.arp.oct <= 4 ? cs.arp.oct : 1, len, lo = 127, hi = 0, sw = 12;
     int xa = x0 + 12, yt = VIEW_Y + 2, h = 40, cur = run ? (int)((cf_sn.arp_idx + 15u) % 16u) : -1;
     uint8_t note[CF_MAX_NOTES], seq[16];
-    static const char *const WHAT[CF_ARP_NMODES] = {"low to high, over and over", "high to low, over and over",
+    static const char *const WHAT[CF_ARP_PAT_FIRST] = {"low to high, over and over", "high to low, over and over",
         "up and down, the ends twice", "up and down, the ends once", "a random note each step",
         "root, 3rd, 5th.. as built", "each note twice, upward", "every chord strummed up",
         "every chord strummed down"};
@@ -1279,6 +1279,53 @@ static void view_arp(int x0)
         }
     }
     len = n * oc;
+#if CF_ARP_NPATS
+    if (CF_ARP_WRITTEN(mode)) {                  /* a written pattern: its next 16 steps, each note as long as it is */
+        const cf_arp_pat_t *pt = &CF_ARP_PATS[(mode - CF_ARP_PAT_FIRST) % CF_ARP_NPATS];
+        int at = run ? (int)(cf_sn.arp_idx - 1u) - cur : 0, top[16], j;
+        uint8_t ord[CF_MAX_NOTES];
+        for (i = 0; i < n; i++)                  /* (the chord from its root up, as the arpeggiator walks it) */
+            ord[i] = note[i];
+        if (run) {
+            int r = cf_sn.out.root_pc;
+            for (i = 1; i < n; i++) {
+                uint8_t v = ord[i];
+                for (j = i - 1; j >= 0 && (ord[j] - r + 120) % 12 > (v - r + 120) % 12; j--)
+                    ord[j + 1] = ord[j];
+                ord[j + 1] = v;
+            }
+        }
+        for (i = 0; i < 16; i++) {
+            const cf_arp_step_t *st = &pt->step[(uint32_t)(at + i + 16 * pt->n) % pt->n];
+            top[i] = -1;
+            for (j = 0; st->len && j < st->n && j < 3; j++) {
+                int nt = cfa_pat_note(ord, (uint32_t)n, st->note[j], cs.chord.quantize != CF_Q_OFF, cs.chord.tonic,
+                                      cs.chord.scale);
+                if (nt > top[i])
+                    top[i] = nt;
+            }
+            if (top[i] >= 0) {
+                lo = top[i] < lo ? top[i] : lo;
+                hi = top[i] > hi ? top[i] : hi;
+            }
+        }
+        for (i = 0; i < 16; i++) {
+            const cf_arp_step_t *st = &pt->step[(uint32_t)(at + i + 16 * pt->n) % pt->n];
+            int y = yt + h - (hi > lo ? (top[i] - lo) * h / (hi - lo) : h / 2);
+            int x = xa + i * sw + ((i & 1) ? sw * (cs.arp.swing - 50) / 50 : 0);
+            int w = sw * st->len * cs.arp.gate / 100 - 1;
+            if (top[i] < 0)
+                continue;
+            if (x + w > xa + 192)
+                w = xa + 192 - x;
+            fb_rect(x, y - 1, w < 2 ? 2 : w, 3, i == cur ? C_ACC(0) : run ? C_ACC(2) : FL_INK3);
+        }
+        for (i = 0; i <= 16; i += 4)
+            fb_vline(xa + i * sw - 1, yt + h + 4, 3, FL_BG3);
+        if (cur >= 0)
+            fb_rect(xa + cur * sw, yt + h + 8, sw - 2, 2, C_ACC(0));
+    } else
+#endif
     if (CF_ARP_STRUMMING(mode)) {                /* the strum: all of them, one after another */
         int k = len > 16 ? 16 : len, gp = 2 + cs.arp.strum_ms / 6;
         for (i = 0; i < k; i++) {
@@ -1319,7 +1366,8 @@ static void view_arp(int x0)
         fb_text_c(&CF_FONT_UI, x0 + 186, VIEW_Y + 49, "LATCH", FL_BG, 1);
     }
     fb_text_halo(&CF_FONT_UI, x0 + 6, VIEW_Y + 62, !cu.arp_on ? "off: turn ON/OFF to play it" : cu.page[SCR_ARP] ?
-                 (cs.arp.latch ? "plays on when you let go" : "stops when you let go") : run ? WHAT[mode] :
+                 (cs.arp.latch ? "plays on when you let go" : "stops when you let go") : run ?
+                 (CF_ARP_WRITTEN(mode) ? "its tune, on the chord you hold" : WHAT[mode]) :
                  "hold a chord to play it", FL_INK3, FL_BG, 1);
 }
 
