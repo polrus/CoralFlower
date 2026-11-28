@@ -71,6 +71,15 @@ Sornyak.
   </tr>
 </table>
 
+## Visuals on a projector
+
+The FM-1 has no video out, but a computer can show its scenes large. `sh tools/visuals/build.sh --serve` builds a page
+with the same torch, Sornyak and butterflies as the firmware (its drawing code, as WebAssembly) and serves it at
+<http://localhost:8017>. Open it in Chrome or Edge with the FM-1 plugged in over USB, allow MIDI, and press F for full
+screen. The page follows the notes and the clock the FM-1 sends (GLOBAL > Channels: chords 1, bass 2, layer 3, drums
+10) and shows the scene you pick (T: the torch, S: the Sornyak). When the FM-1 is switched on or plugged in, the page plays its intro too
+(silent: the start sound is the synth's). Demo (D) plays a pattern of its own. It needs the Emscripten SDK in `~/emsdk`.
+
 ## Install
 
 Sornyak's installer is this repository's site (`web/`, published by `.github/workflows/pages.yml` once GitHub Pages

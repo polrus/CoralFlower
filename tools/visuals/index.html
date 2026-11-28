@@ -1,0 +1,49 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: GPL-3.0-only -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sornyak Visuals</title>
+<style>
+  :root { --bg: #000; --panel: rgba(12, 10, 24, .88); --ink: #e3f0ec; --dim: #82aba2; --acc: #b0e34c; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink);
+    font: 14px/1.4 ui-monospace, Menlo, monospace; overflow: hidden; }
+  canvas { position: fixed; inset: 0; margin: auto; image-rendering: pixelated; image-rendering: crisp-edges; }
+  body.idle { cursor: none; }
+  #panel { position: fixed; left: 16px; top: 16px; background: var(--panel); border: 1px solid #2a354a;
+    border-radius: 8px; padding: 12px 14px; display: grid; gap: 8px; min-width: 260px; max-width: calc(100vw - 64px);
+    transition: opacity .4s; }
+  body.idle #panel { opacity: 0; pointer-events: none; }
+  #panel h1 { margin: 0 0 2px; font-size: 15px; color: var(--acc); letter-spacing: .04em; }
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  label { color: var(--dim); }
+  select, button, input { font: inherit; color: var(--ink); background: #1a1026; border: 1px solid #2a354a;
+    border-radius: 5px; padding: 3px 8px; }
+  button.on { border-color: var(--acc); color: var(--acc); }
+  input[type=number] { width: 3.2em; }
+  #status { color: var(--dim); font-size: 12px; }
+  .keys { color: var(--dim); font-size: 12px; }
+</style>
+</head>
+<body>
+<canvas id="cv" width="160" height="90"></canvas>
+<div id="panel">
+  <h1>SORNYAK VISUALS</h1>
+  <div class="row"><label for="midi">MIDI in</label><select id="midi"><option value="">(none)</option></select></div>
+  <div class="row"><label>Scene</label>
+    <button id="sc0" class="on">Torch</button><button id="sc1">Sornyak</button></div>
+  <div class="row"><label>Size</label>
+    <button id="sz0" class="on">Wide 16:9</button><button id="sz1">As on the FM-1</button></div>
+  <div class="row"><label>Channels</label>
+    chords <input id="chC" type="number" min="1" max="16" value="1">
+    bass <input id="chB" type="number" min="1" max="16" value="2">
+    layer <input id="chL" type="number" min="1" max="16" value="3">
+    drums <input id="chD" type="number" min="1" max="16" value="10"></div>
+  <div class="row"><button id="fs">Full screen</button><button id="demo">Demo</button></div>
+  <div id="status">starting…</div>
+  <div class="keys">F full screen · T torch · S Sornyak · D demo · the panel hides when the mouse rests</div>
+</div>
+<script src="vis.js"></script>
+</body>
+</html>
